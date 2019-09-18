@@ -30,3 +30,8 @@ StuDF <- data.frame(
 StuDF 
 ```
 
+```{r}
+class(StuDF) #可以做df能做的事
+typeof(StuDF) #以list儲存
+```
+

@@ -85,7 +85,43 @@ mutate(StuDF,
        調分後成績=成績+10)
 transmute(StuDF,
        調分後成績=成績+10) # 不保留其他變數
+
+StuDF$調分後成績 <- StuDF$成績+10
+StuDF
 ```
+
+在collegeData:
+
+新增變數男生及女生,其值為「一到四年級」所有男生及女生的加總。（男生使用dplyr, 女生不使用dplyr）
+
+新增變數男女生比，其值為前述男生/女生。
+
+```{r}
+collegeData <- mutate(collegeData,男生=一年級男生+二年級男生+三年級男生+四年級男生)
+
+collegeData$女生<-collegeData$一年級女生+collegeData$二年級女生+collegeData$三年級女生+collegeData$四年級女生
+
+collegeData$男女生比 <- collegeData$男生/collegeData$女生
+
+collegeData
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

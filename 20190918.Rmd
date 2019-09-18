@@ -107,7 +107,29 @@ collegeData
 
 ```
 
+summarise
+```{r}
+StuDF
+summarise(StuDF,
+        平均成績=mean(成績),
+        最高分=max(成績),
+        最低分=min(成績))
 
+mutate(StuDF,
+        平均成績=mean(成績),
+        最高分=max(成績),
+        最低分=min(成績))
+```
+
+若老師的調分為原始成績加上「最高最低分差距除以5」，請產生調分成績:
+```{r}
+StuDF$調分成績 <- StuDF$成績+(max(StuDF$成績)-min(StuDF$成績))/5
+StuDF
+
+StuDF1 <- StuDF
+mutate(StuDF1,(調分成績=max(成績)+min(成績))/5)
+StuDF1
+```
 
 
 

@@ -218,6 +218,16 @@ ungroup(StuDF_依性別調分) ->
   StuDF_調分後
 ```
 
+```{r}
+collegeData_grouped <- group_by(collegeData,
+                               縣市名稱,體系別,等級別)
+
+summarise(collegeData_grouped,
+          一年級男生總數=sum(一年級男生),
+          一年級女生總數=sum(一年級女生),
+          學校數目=length(unique(學校名稱)))
+
+```
 
 
 

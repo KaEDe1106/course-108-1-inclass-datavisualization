@@ -131,6 +131,21 @@ mutate(StuDF1,(調分成績=max(成績)+min(成績))/5)
 StuDF1
 ```
 
+```{r}
+mutate(StuDF,
+        平均成績=mean(成績),
+        最高分=max(成績),
+        最低分=min(成績)) -> StuDF2
+StuDF2
+
+select(StuDF2,
+       次序,性別,
+       contains("最"))
+
+select(StuDF2,
+       -次序,-性別,
+       -contains("最"))
+```
 
 
 

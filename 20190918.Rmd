@@ -147,7 +147,21 @@ select(StuDF2,
        -contains("最"))
 ```
 
+女性，且成績大於60
+```{r}
+StuDF[(StuDF$性別=="女") & (StuDF$成績>60),]
+```
 
+```{r}
+StuDF
+filter(StuDF,
+       性別=="女")
+filter(StuDF,
+       (性別=="女" & 成績>60))
+filter(StuDF,
+       性別=="女",
+       成績>60) # 多個AND條件可用,分隔
+```
 
 
 

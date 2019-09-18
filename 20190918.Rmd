@@ -33,5 +33,55 @@ StuDF
 ```{r}
 class(StuDF) #可以做df能做的事
 typeof(StuDF) #以list儲存
+
+class(StuList)
+typeof(StuList)
 ```
+
+```{r}
+length(StuDF) # 從向量角度看
+nrow(StuDF) # 從矩陣角度看
+```
+
+```{r}
+str(StuDF)
+head(StuDF)
+```
+
+以下用dplyr套件:
+```{r}
+StuDF
+slice(StuDF,1:3)
+slice(StuDF,4:5)
+slice(StuDF,n()) #n() 為計算共有幾筆資料,為一interger
+```
+```{r}
+slice(StuDF,(n()-1):n())
+```
+
+```{r}
+StuDF
+slice(StuDF,-5:-7) 
+slice(StuDF,-(5:7)) #兩者皆[不要]5~7
+```
+
+
+```{r}
+StuDF
+slice(StuDF,c(1,4,8))
+```
+
+```{r}
+library(readr)
+collegeData <- read_csv("https://raw.githubusercontent.com/tpemartin/github-data/master/103_student.csv")
+
+str(collegeData)
+slice(collegeData,c(1:4,(n()-2):n(),101:110))
+```
+
+```{r}
+slice(collegeData,c(1:4,(n()-2):n(),101:110))
+```
+
+
 

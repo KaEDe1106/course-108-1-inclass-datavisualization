@@ -163,8 +163,19 @@ filter(StuDF,
        成績>60) # 多個AND條件可用,分隔
 ```
 
+依以下各別情境，選出collegeData中符合情境的觀測值：
 
+縣市名稱為“30 臺北市”
 
+縣市名稱為“30 臺北市”或“01 新北市”。（使用OR|或belong to%in%）
+
+```{r}
+collegeData[collegeData$縣市名稱=="30 臺北市",]
+
+filter(collegeData,
+       縣市名稱=="30 臺北市"|
+       縣市名稱=="01 新北市")
+```
 
 
 

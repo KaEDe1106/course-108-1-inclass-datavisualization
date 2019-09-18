@@ -80,7 +80,11 @@ slice(collegeData,c(1:4,(n()-2):n(),101:110))
 ```
 
 ```{r}
-slice(collegeData,c(1:4,(n()-2):n(),101:110))
+StuDF
+mutate(StuDF,
+       調分後成績=成績+10)
+transmute(StuDF,
+       調分後成績=成績+10) # 不保留其他變數
 ```
 
 

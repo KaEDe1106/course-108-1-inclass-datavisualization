@@ -261,6 +261,87 @@ StuDF_依性別調分 %>% ungroup() ->
   StuDF_調分後
 ```
 
+將collegeData，
+
+依等級別,縣市名稱分群後,
+
+計算一年級男/女生比例後,
+
+找出男女生比例最高的等級別,縣市名稱組合。
+
+```{r}
+collegeData_男女生比例<-collegeData %>% 
+  group_by(等級別,縣市名稱) %>%
+    summarise(男生=sum(一年級男生),
+              女生=sum(一年級女生),
+              `一年級男/女生比例`=男生/女生) 
+
+rate <- collegeData_男女生比例[!(is.na(collegeData_男女生比例$`一年級男/女生比例`)),]
+
+log1 <- rate$`一年級男/女生比例` == max(rate$`一年級男/女生比例`)
+rate[log1,]
+```
+
+```{r}
+load(url("https://www.dropbox.com/s/duh5aaqgl2f5m3z/loopTranscriptData.Rda?raw=1"))
+```
+
+1.計算每位學生每學期的平均成績。
+```{r}
+transcriptDataFinal_grouped <- group_by(transcriptDataFinal,
+                                        學號,學年,學期)
+summarise(transcriptDataFinal_grouped,
+          平均成績=sum(學分數*學期成績)/sum(學分數))
+
+```
+
+2.計算每位學生每學期學分數在必/選/通 三類的學分數比重。
+```{r}
+transcriptDataFinal_grouped$必修學分數 <- transcriptDataFinal_grouped$學分數*(transcriptDataFinal_grouped$`必選修類別（必∕選∕通）`=="必")
+
+transcriptDataFinal_grouped$選修學分數 <- transcriptDataFinal_grouped$學分數*(transcriptDataFinal_grouped$`必選修類別（必∕選∕通）`=="選")
+
+transcriptDataFinal_grouped$通識學分數 <- transcriptDataFinal_grouped$學分數*(transcriptDataFinal_grouped$`必選修類別（必∕選∕通）`=="通")
+
+transcriptDataFinal_grouped %>%
+  summarise(必修學分比重=sum(必修學分數)/sum(學分數),
+            選修學分比重=sum(選修學分數)/sum(學分數),
+            通識學分比重=sum(通識學分數)/sum(學分數))
+```
+
+
+3.學屆為100（即100學年入學）的學生，各系學生在學所修總學分數之中位數，何系最高？
+```{r}
+okstudent <- unique(transcriptDataFinal$學號[transcriptDataFinal$學年==100]) 
+log5 <- transcriptDataFinal$學號 %in% okstudent
+
+okstudentAllCredit<-
+  transcriptDataFinal[log5,] %>%
+    group_by(學號,學系) %>%
+      summarise(總修學分數=sum(學分數))
+
+okstudentAllCredit
+
+okstudentAllCreditMedian <-
+  okstudentAllCredit %>%
+    group_by(學系)%>%
+      summarise(總修學分中位數=median(總修學分數))
+
+okstudentAllCreditMedian
+
+okstudentAllCreditMedian[okstudentAllCreditMedian$總修學分中位數==max(okstudentAllCreditMedian$總修學分中位數),]
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 

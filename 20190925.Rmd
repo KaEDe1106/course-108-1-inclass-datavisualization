@@ -31,14 +31,25 @@ gather(collegeData,
 library(readr)
 df_taoyuanMarriage <- read_csv("https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=f95d1a33-ec56-44c5-a9ec-3afba8157e39&rid=fd2070ef-7431-4f9c-bc3a-82d7bfbcd2fb")
 ```
+將資料「一～十二月」縮排在月份變數，而其下的對應值縮排在對數變數。
+
 
 ```{r}
-gather(df_taoyuanMarriage,
-       -月份區域別,
-       key="月份",value="對數")
+df_taoyuanMarriage %>%
+  gather(-月份區域別,
+          key="月份",value="對數") %>%
+            group_by(月份) %>%
+              summarise(總結婚對數=sum(對數))
+```
 ```
 
+計算每個月份桃園總結婚對數。
+```{r}
+df_taoyuanMarriage %>%
+  
 
+
+找出每個地區結婚最高峰月份。
 
 
 

@@ -117,6 +117,17 @@ ggplot(subsetDataTWbank)+
 
 ```
 
+```{r}
+subsetDataTWbank %>%
+  gather(
+    contains("固定"),
+    key=定存類型,value=利率
+  )%>%
+    ggplot()+
+    geom_boxplot(
+      aes(x=定存類型, y=利率)
+    )
+```
 
 
 

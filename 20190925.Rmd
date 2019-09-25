@@ -73,6 +73,15 @@ df_twbankExchangeRate %>%
     spread(幣別,即期買入匯率)
 ```
 
+```{r}
+df_twbankExchangeRate %>%
+  mutate(
+    日期=ymd(日期),
+    幣別=as.factor(幣別),
+    即期買入匯率= as.numeric(即期買入匯率),
+    即期賣出匯率= as.numeric(即期賣出匯率)
+  )
+```
 
 
 

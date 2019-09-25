@@ -27,3 +27,21 @@ gather(collegeData,
 
 ```
 
+```{r}
+library(readr)
+df_taoyuanMarriage <- read_csv("https://data.tycg.gov.tw/opendata/datalist/datasetMeta/download?id=f95d1a33-ec56-44c5-a9ec-3afba8157e39&rid=fd2070ef-7431-4f9c-bc3a-82d7bfbcd2fb")
+```
+
+```{r}
+gather(df_taoyuanMarriage,
+       -月份區域別,
+       key="月份",value="對數")
+```
+
+
+
+
+
+
+
+

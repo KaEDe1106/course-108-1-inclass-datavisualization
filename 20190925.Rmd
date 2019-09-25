@@ -129,6 +129,17 @@ subsetDataTWbank %>%
     )
 ```
 
+```{r}
+subsetDataTWbank %>%
+  gather(
+  contains("固定"),
+  key=定存類型,value=利率
+  )%>%
+   ggplot()+
+   geom_line(
+    aes(x=西元年月,y=利率,color=定存類型)
+  )
+```
 
 
 

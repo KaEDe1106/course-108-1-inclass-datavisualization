@@ -46,5 +46,34 @@ a %>%
 ```
 
 
+```{r}
+df_spreadExample <- data.frame(
+  id = c(1,1,1,2,2,2),
+  var = c("花朶萼片長度", "學名", "總類數"),
+  value = c(5.1, "setosa", 1, 
+            7.0, "versicolor", 2))
+```
+```{r}
+df_spreadExample
+spread(df_spreadExample,
+       var,value)
+```
+
+```{r}
+df_twbankExchangeRate <- read_csv("http://www.bot.com.tw/Govinfo/opendata/csv/151/20180101-20181231-FXCRT.csv")
+```
+
+留下日期、幣別、即期買入匯率，將幣別依其貨幣名稱spread成不同欄位，其下所屬值為即期買入匯率。
+
+```{r}
+df_twbankExchangeRate
+
+df_twbankExchangeRate %>%
+  select(-即期賣出匯率) %>%
+    spread(幣別,即期買入匯率)
+```
+
+
+
 
 

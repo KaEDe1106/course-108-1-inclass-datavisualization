@@ -85,4 +85,16 @@ df_twbankExchangeRate %>%
 
 
 
+```{r}
+taifex_open_data %>%
+  mutate(
+    日期= ymd(日期)
+  )
+```
+
+```{r}
+TrainDeathNumber2018 <- read_csv("http://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/8ae4cabe6c8578b2016c8a2a14043137", 
+    locale = locale())
+TrainDeathNumber2018
+```
 

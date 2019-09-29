@@ -44,6 +44,22 @@ a %>%
   group_by(月份) %>%
     summarise(總結婚對數=sum(對數))
 ```
+找出每個地區結婚最高峰月份
+```{r}
+df_taoyuanMarriage%>%
+  gather(-月份區域別,
+          key="月份",value="對數") %>%
+    group_by(月份區域別) %>%
+     mutate(最高峰對數=max(對數)) ->df_taoyuanMarriageMax
+
+df_taoyuanMarriage
+df_taoyuanMarriageMax
+log1 <- df_taoyuanMarriageMax$對數 == df_taoyuanMarriageMax$最高峰對數
+df_taoyuanMarriageMax[log1,]
+```
+```{r}
+
+```
 
 
 ```{r}

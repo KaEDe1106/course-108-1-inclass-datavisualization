@@ -1,0 +1,90 @@
+---
+title: '20191002'
+author: "KaEDe"
+date: "2019年10月2日"
+output: html_document
+---
+
+```{r}
+library(grDevices) # 不同顏色模型代碼的呈現及轉換
+library(scales) # show_col()螢幕立即顯示顏色
+library(colorspace) # 調色盤選擇及ggplot應用工具
+library(shinyjs) # 支援套件
+```
+```{r}
+library(scales)
+show_col(c(rgb(0,0,1),rgb(0.5,0,0.7),rgb(0.1,0.7,0.2),rgb(0.3,0.7,0.5)))
+show_col(
+  c(
+    hsv(30/360,0,0),hsv(30/360,0.5,0),hsv(30/360,1,0), # (,,lightness=0) 全暗
+    hsv(30/360,0,0.5),hsv(30/360,0.5,0.5),hsv(30/360,1,0.5), # (,,lightness=0.5)
+    hsv(30/360,0,1),hsv(30/360,0.5,1),hsv(30/360,1,1) # (,,lightness=1) 全亮
+  )
+)
+```
+
+
+```{r}
+choose_palette(gui="shiny")
+```
+
+
+```{r}
+data.frame(
+  x1 = factor(sample(c(1L,2L,3L),100,replace=T)),
+  x2 = runif(100),
+  y = runif(100),
+  z1 = rnorm(100),
+  z2 = factor(sample(letters[1:4],100,replace=T))
+) -> df_example
+```
+
+
+```{r}
+df_example %>%
+  ggplot()+
+  geom_boxplot(
+    aes(x=x1,y=y,fill=z2)
+  ) -> basicBoxplot
+basicBoxplot
+
+df_example %>%
+  ggplot()+
+  geom_point(
+    aes(x=x2,y=y,color=z1)
+  ) -> basicScatterPlot
+basicScatterPlot
+```
+
+
+
+```{r}
+colorspace::qualitative_hcl(n = 6, h = c(-260, 89), c = 60, l = 20, register = "K4")
+
+basicScatterPlot +
+  scale_color_continuous_qualitative(palette = "K4")
+```
+
+```{r}
+colorspace::sequential_hcl(n = 7, h = 260, c = c(80, NA, NA), l = c(30, 90), power = 1.5, register = "K5")
+basicScatterPlot +
+  scale_color_continuous_sequential(palette = "K5")
+```
+
+
+```{r}
+disposableIncome <- read_csv("https://www.dropbox.com/s/z80sbjw94cjex8x/disposableIncome.csv?dl=1",
+locale = locale(encoding = "BIG5"), skip = 4)
+```
+
+```{r}
+disposableIncome
+```
+
+
+
+
+
+
+
+

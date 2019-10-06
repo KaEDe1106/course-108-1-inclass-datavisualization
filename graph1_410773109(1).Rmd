@@ -1,0 +1,135 @@
+---
+title: "每週一圖作業"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(tidyr); library(showtext)
+
+font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(out.width='80%', fig.asp=.75, fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+
+此部份在做：
+
+  * 原始Rda資料引入（即引入**dataList**物件）；
+  
+  * 資料清理成作圖用graphData物件。
+
+請將你最原始的資料連同作業一起上傳到作業上傳網址：  
+  * 若「原始資料為網頁下載」，且下載指令寫在data cleaning chunk裡的話，可以不用上傳「資料」。  
+  * 若原始資料有很多個檔案，請先引入成data frame並存在「一個」.Rda檔裡上傳（如`example_data.Rda`檔）。  
+
+資料檔引入到進入作圖前的資料處理請寫在下面區塊，分二部份：
+
+  * 資料處理  
+  * 作圖用資料物件生成
+  
+```{r data cleaning, echo=TRUE, eval=T}
+
+##討論來自哪個國家的生母，比較可能在較高或較低的年齡層生產(資料來自戶政司在民國107年的統計資料)
+graphData <- list()
+
+DownloadFile <- read_csv("http://data.moi.gov.tw/MoiOD/System/DownloadFile.aspx?DATA=B44CB231-00DD-4296-82E8-8A601D33EDF9")
+
+##1.除去不需要的資料
+DownloadFile %>%
+  select(mother_nation,mother_age,birth_count) -> step1
+step1$mother_nation %>%
+  str_detect("或地區") -> log1
+step1[!(log1),] -> step1 ##相同的`mother_nation`及`mother_age`出現6次是因為原資料有一變數名為`教育程度`，其值有6種結果，之後再處理
+
+##2.改變變數名稱，並且將生母年齡寫成數字 
+step2 <- step1
+names(step2) <- c("生母原屬國籍或地區","生母年齡","嬰兒出生數")
+
+step2$生母年齡%>%
+  str_replace("未滿15歲","15") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("15～19歲","19") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("20～24歲","24") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("25～29歲","29") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("30～34歲","34") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("35～39歲","39") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("40～44歲","44") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("45～49歲","49") -> step2$生母年齡
+step2$生母年齡%>%
+  str_replace("50歲以上","54") -> step2$生母年齡
+
+##3.將各變數類別調整，順便排序levels
+step2%>%
+  transmute(
+    生母原屬國籍或地區=factor(生母原屬國籍或地區,levels=c( "本國","大陸地區", "東南亞地區","港澳地區" ,"其他地區" )),
+    生母年齡=as.numeric(生母年齡),
+    嬰兒出生數=as.numeric(嬰兒出生數)
+  ) -> step3
+
+
+##4.依生母國籍及年齡層分類，計算出該分類的嬰兒出生總數
+step3%>%
+  group_by(生母原屬國籍或地區,生母年齡)%>%
+   mutate(總嬰兒出生數=sum(嬰兒出生數))%>%
+    select(-嬰兒出生數)%>%
+      unique() -> step4  ##去除重複的資料(重複原因來自第50行)
+
+##5.計算生母原屬國籍或地區的嬰兒總數，並且新增一變數名為`生母原屬國籍或地區的嬰兒總數`
+step4%>%
+  group_by(生母原屬國籍或地區)%>%
+    summarise(該地嬰兒出生數=sum(總嬰兒出生數)) ->sum_bynation
+
+step4$生母原屬國籍或地區==sum_bynation$生母原屬國籍或地區[1] ->nationlog1
+step4$生母原屬國籍或地區==sum_bynation$生母原屬國籍或地區[2] ->nationlog2
+step4$生母原屬國籍或地區==sum_bynation$生母原屬國籍或地區[3] ->nationlog3
+step4$生母原屬國籍或地區==sum_bynation$生母原屬國籍或地區[4] ->nationlog4
+step4$生母原屬國籍或地區==sum_bynation$生母原屬國籍或地區[5] ->nationlog5  ##新增五個logic，用於將生母原屬國籍或地區分類
+
+step5 <- step4
+step5$生母原屬國籍或地區的嬰兒總數 <- sum_bynation$該地嬰兒出生數[1]
+step5[nationlog2,]$生母原屬國籍或地區的嬰兒總數 <- sum_bynation$該地嬰兒出生數[2]
+step5[nationlog3,]$生母原屬國籍或地區的嬰兒總數 <- sum_bynation$該地嬰兒出生數[3]
+step5[nationlog4,]$生母原屬國籍或地區的嬰兒總數 <- sum_bynation$該地嬰兒出生數[4]
+step5[nationlog5,]$生母原屬國籍或地區的嬰兒總數 <- sum_bynation$該地嬰兒出生數[5]  ##依照類別填入該國嬰兒總數
+
+##6.計算比例，新增名為`嬰兒總數佔該區域嬰兒總數百分比`的變數，並去除不需要的部分
+step6 <- step5
+step6$嬰兒總數佔該區域嬰兒總數百分比 <- step6$總嬰兒出生數/step6$生母原屬國籍或地區的嬰兒總數
+step6%>%
+  select(-生母原屬國籍或地區的嬰兒總數,-總嬰兒出生數) ->step6
+
+step6
+graphData$data <- step6
+```
+
+#### 繪圖程式
+
+```{r graph, echo=T, eval=T}
+graphData$data%>%
+  ggplot()+
+  geom_line(size=1.2,
+    aes(x=生母年齡,y=嬰兒總數佔該區域嬰兒總數百分比,color=生母原屬國籍或地區)
+  )
+
+```
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***之後
+*** 
+
+此圖表現民國107年時，在台來自各區域的生母，在不同年齡層下生產的嬰兒總數，佔生母原屬區域的嬰兒總數之百分比。圖中我們可以看到大部分的生母都在30~34歲時生產，隨著年齡越小或越大，生產的嬰兒總數就佔越少的百分比。
+原屬國籍在東南亞地區的生母在20~24歲生產的比例，遠高於東南亞地區以外的生母在20~24歲時生產的比例，可見比起其他國籍的生母，來自於東南亞地區的生母較有可能在20~24歲生產；原屬國籍在大陸地區的生母，比起台灣、東南亞、港澳地區的生母，更有可能在35歲或以後生產；而原屬國籍在其他地區的生母，在35歲或以後生產的比例特別的高，所以他們是在台灣最有可能成為高齡產婦的族群。

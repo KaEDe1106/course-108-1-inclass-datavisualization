@@ -38,6 +38,7 @@ knitr::opts_chunk$set(out.width='80%', fig.asp=.75, fig.align='center', fig.show
 ```{r data cleaning, echo=TRUE, eval=T}
 graphData <- list()
 
+
 ```
 
 #### 繪圖程式

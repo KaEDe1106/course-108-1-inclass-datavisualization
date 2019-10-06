@@ -1,0 +1,139 @@
+---
+title: "每週一圖作業"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(tidyr); library(showtext)
+library(grDevices) # 不同顏色模型代碼的呈現及轉換
+library(scales) # show_col()螢幕立即顯示顏色
+library(colorspace) # 調色盤選擇及ggplot應用工具
+library(shinyjs) # 支援套件
+
+font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(out.width='80%', fig.asp=.75, fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+
+此部份在做：
+
+  * 原始Rda資料引入（即引入**dataList**物件）；
+  
+  * 資料清理成作圖用graphData物件。
+
+請將你最原始的資料連同作業一起上傳到作業上傳網址：  
+  * 若「原始資料為網頁下載」，且下載指令寫在data cleaning chunk裡的話，可以不用上傳「資料」。  
+  * 若原始資料有很多個檔案，請先引入成data frame並存在「一個」.Rda檔裡上傳（如`example_data.Rda`檔）。  
+
+資料檔引入到進入作圖前的資料處理請寫在下面區塊，分二部份：
+
+  * 資料處理  
+  * 作圖用資料物件生成
+  
+```{r data cleaning, echo=TRUE, eval=T}
+##讀入資料
+DownloadFile <- read_csv("http://data.moi.gov.tw/MoiOD/System/DownloadFile.aspx?DATA=7A4A66D5-0701-4422-9594-F654CFEB47BD")
+graphData <- list()
+
+
+##新增一變數名為性別，其值為'男','女','性別總計'
+DownloadFile$`15歲以上人口數` %>%
+  str_detect("男") -> logMan
+DownloadFile$`15歲以上人口數` %>%
+  str_detect("女") -> logWoman
+
+DownloadFile$性別[logMan] <- "男"
+DownloadFile$性別[logWoman] <- "女"
+DownloadFile$性別[!(logMan)&!(logWoman)] <- "總計"
+DownloadFile -> step1
+
+##除去變數`15歲以上人口數`下，其值包含"區域別總計"的欄位
+step1$`15歲以上人口數` %>%
+  str_sub(6,9)%>%
+  str_detect("區域") -> loglocation
+
+step1[(!loglocation),] -> step2
+
+##去除不相關之資料，並且將變數`15歲以上人口數`重新命名為`地區`
+step2$`15歲以上人口數`%>%
+  str_sub(6,9) -> step2$`15歲以上人口數`
+
+step2%>%
+  select(-contains("_人")) ->step3
+names(step3) <- c("地區","不識字率","性別")
+
+##將`地區`欄位轉為fector
+step3%>%
+  mutate(
+    地區=as.factor(地區),
+    不識字率=as.numeric(不識字率),
+    性別=as.character(性別) 
+  ) ->step4
+levels(step4$地區)
+
+graphData$illiteracyRate <- step4
+```
+
+
+##改變levels
+step4$地區 %>%
+  factor(levels = c("新北市","臺北市","桃園市","臺中市","臺南市","高雄市","宜蘭縣","新竹縣","苗栗縣","彰化縣","南投縣","雲林縣","嘉義縣","屏東縣","臺東縣","花蓮縣","澎湖縣","基隆市","新竹市","嘉義市","金門縣","連江縣"))
+
+
+
+graphData$illiteracyRate <- step5
+factor(step4$地區,levels = c("新北市","臺北市","桃園市","臺中市","臺南市","高雄市","宜蘭縣","新竹縣","苗栗縣","彰化縣","南投縣","雲林縣","嘉義縣","屏東縣","臺東縣","花蓮縣","澎湖縣","基隆市","新竹市","嘉義市","金門縣","連江縣")) ->step4$地區
+step4
+
+
+#### 繪圖程式
+
+```{r}
+choose_palette(gui="shiny")
+```
+
+
+```{r graph, echo=T, eval=T}
+graphData$illiteracyRate %>%
+    ggplot()+
+    geom_col(position='dodge',
+      aes(x=地區,y=不識字率,fill=性別)
+    )
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***之後
+*** 
+
+

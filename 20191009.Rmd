@@ -1,0 +1,67 @@
+---
+title: '20191009'
+author: "KaEDe"
+date: "2019年10月9日"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(magrittr)
+disposableIncome <- read_csv("https://www.dropbox.com/s/z80sbjw94cjex8x/disposableIncome.csv?dl=1",locale = locale(encoding = "BIG5"), skip = 4)
+disposableIncome_gather <- read_csv("https://www.dropbox.com/s/cdw1f10jow4frxb/disposableIncome_gather.csv?dl=1")
+```
+
+```{r}
+library(magrittr)
+disposableIncome_gather$所得組距 %>%
+  factor(levels=c(
+    "可支配所得按戶數五等分位組-最低所得組",
+    "可支配所得按戶數五等分位組-次低所得組",
+    "可支配所得按戶數五等分位組-中間所得組",
+    "可支配所得按戶數五等分位組-次高所得組",
+    "可支配所得按戶數五等分位組-最高所得組"
+  )) 
+
+disposableIncome_gather %<>%
+  ggplot(aes(x=年,y=可支配所得))+
+  geom_line(
+    aes(linetype=所得組距,size=所得組距)
+  ) +
+  scale_linetype_manual(
+    values=c("15","24","34","51","71")
+  ) +
+  scale_size_manual(
+    values=c(0.1,0.3,0.3,0.5,0.7)*1.5
+  ) -> p_linetype
+p_linetype
+```
+
+
+```{r}
+load(url("https://github.com/tpemartin/course-108-1-inclass-datavisualization/blob/master/%E4%BD%9C%E5%93%81%E5%B1%95%E7%A4%BA/graphData_homework2019-10-08_014.Rda?raw=true")) 
+graphData
+```
+
+```{r}
+names(graphData$travelerFromAsia) <- c("年分","地區","來台旅遊人數(萬)")
+graphData
+```
+
+
+```{r}
+##1.去除不需要的資料
+graphData$travelerFromAsia[!str_detect(graphData$travelerFromAsia$地區,("計")) ,] -> step1
+
+step1$年分 <- as.numeric(step1$年分)
+step1 -> step2
+
+##2.準備畫圖
+step2%>%
+  ggplot()+
+  geom_line(
+    aes(x=年分,y=`來台旅遊人數(萬)`,color=地區)
+  )
+
+```
+

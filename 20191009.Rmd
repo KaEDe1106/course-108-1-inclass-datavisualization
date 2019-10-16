@@ -193,6 +193,9 @@ disposableIncome_gather %>%
   )
 ```
 
+```{r}
+colorspace::sequential_hcl(n = 7, h = 15, c = c(94, NA, NA), l = c(69, 97), power = 1.3, rev = TRUE, register = "Custom-Palette")
+```
 
 
 

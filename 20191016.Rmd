@@ -1,0 +1,60 @@
+---
+title: '20191016'
+author: "KaEDe"
+date: "2019年10月16日"
+output: html_document
+---
+
+
+```{r}
+load(url("https://github.com/tpemartin/course-108-1-inclass-datavisualization/blob/master/%E4%BD%9C%E5%93%81%E5%B1%95%E7%A4%BA/homework2/graphData_homework2_005.Rda?raw=true"))
+```
+
+
+
+```{r}
+graphData$data %>%
+ggplot(aes(x=年份,y=毛額,color=國民所得_儲蓄_投資毛額))+
+geom_line(aes(linetype=國民所得_儲蓄_投資毛額)) -> graphData$original
+
+
+##設定長方形
+graphData$events <- 
+  data.frame(
+    start=c(2008,2013),
+    end=c(2009,2014),
+    ymin=c(-Inf,-Inf),
+    ymax=c(Inf,Inf),
+    name=c("次貸危機","歐債危機")
+  )
+
+##加入長方形
+graphData$original+
+  geom_rect(
+    data=graphData$events,
+    mapping = 
+      aes(
+        xmin=start,
+        xmax=end,
+        ymin=ymin,
+        ymax=ymax
+      ),
+    inherit.aes = F,alpha=0.2
+  )+
+  geom_text(
+    data = graphData$events,
+    aes(
+      x=(start+end)/2,
+      y=180000,
+      label=name
+    ),
+    inherit.aes = F
+  )-> graphData$improved
+
+```
+
+```{r}
+graphData$original
+graphData$improved
+```
+

@@ -1,0 +1,102 @@
+---
+title: "每週一圖作業"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(tidyr); library(showtext)
+library(grDevices) # 不同顏色模型代碼的呈現及轉換
+library(scales) # show_col()螢幕立即顯示顏色
+library(colorspace) # 調色盤選擇及ggplot應用工具
+library(shinyjs) # 支援套件
+font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(out.width='80%', fig.asp=.75, fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+
+此部份在做：
+
+  * 原始Rda資料引入（即引入**dataList**物件）；
+  
+  * 資料清理成作圖用graphData物件。
+
+請將你最原始的資料連同作業一起上傳到作業上傳網址：  
+  * 若「原始資料為網頁下載」，且下載指令寫在data cleaning chunk裡的話，可以不用上傳「資料」。  
+  * 若原始資料有很多個檔案，請先引入成data frame並存在「一個」.Rda檔裡上傳（如`example_data.Rda`檔）。  
+
+資料檔引入到進入作圖前的資料處理請寫在下面區塊，分二部份：
+
+  * 資料處理  
+  * 作圖用資料物件生成
+  
+```{r data cleaning, echo=TRUE, eval=T}
+
+graphData <- list()
+##討論各個不同的國道服務區，營業額高峰分別在幾月?(來自交通部高速公路局於107年的統計資料)
+
+data107 <- read_csv("https://www.freeway.gov.tw/Upload/DownloadFiles/107%e5%b9%b4%e5%9c%8b%e9%81%93%e6%9c%8d%e5%8b%99%e5%8d%80%e6%af%8f%e6%9c%88%e7%87%9f%e6%a5%ad%e9%a1%8d.csv")
+
+#1.將各月變數合併成名為`月份`的變數
+data107%>%
+  gather(contains("月"),
+         key=月份,value=營業額) -> step1
+
+#2.更改變數名稱，並且排序levels
+step1%>%
+  transmute(
+    區名=factor(區名,levels= c("石碇","關廟","東山","古坑","南投","清水","西湖","關西","仁德","新營","西螺","泰安","湖口","中壢")),
+    月份=factor(月份,levels= c("1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月")),
+    `營業額(元)`=營業額
+  ) ->step2
+graphData$ans <- step2
+```
+
+
+#### 繪圖程式
+
+```{r graph, echo=T, eval=T}
+
+breakmoney <- c(10000000,30000000,50000000,70000000)
+labelmoney <- c("一千萬","三千萬","五千萬","七千萬")
+sequential_hcl(n = 5, h = c(10, 85), c = c(80, NA, 10), l = c(25, 95), power = c(0.05, 1.3), register = "K1")
+
+graphData$ans%>%
+  ggplot()+
+  geom_tile(
+    aes(x=月份,y=區名,fill=`營業額(元)`)
+  )+
+  labs(title = "國道服務區於每月的營業額")+
+  scale_fill_continuous_sequential(palette="K1",breaks=breakmoney,labels=labelmoney)
+
+```
+
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***之後
+*** 
+此圖表達了國道各服務區於每月的營業額。
+
+整體而言，`清水服務區`在每個月的營業額都比其他服務區高，營業額差不多在五千萬元上下，*在高峰時甚至可達八千萬元以上*。
+
+大部分的服務區的營收高峰都落在*2月*，唯`石碇服務區`的營業額高峰落在*8月*。
+
+營業額*最低*的幾個服務區分別為`關廟服務區`、`中壢服務區`、及`石碇服務區`。中壢服務區的營業額皆未達一千萬元，關廟、石碇服務區也僅在營業額高峰月份突破一千萬元。
+
+其他大部分的服務區，在非營業高峰月的營業額落在一千萬到三千萬元之間，而`西螺服務區`、`關西服務區`及`東山服務區`的營業額較高，突破三千萬元的月份較多。
+
+
+設計想法:
+*採用tile是因為要表達三種變數:區名、月份、營業額
+
+*配色部分考量人們認為紅色代表興隆，所以看到偏深紅的顏色，可以馬上聯想到為旺季；而顏色越淡，代表生意越冷清。
+
+*這邊故意把一千萬元當門檻，低於一千萬元的值顏色會特別淡，對比更加強烈。

@@ -58,3 +58,48 @@ graphData$original
 graphData$improved
 ```
 
+
+```{r}
+startSalaryTopCat<- read_csv("https://raw.githubusercontent.com/tpemartin/github-data/master/startSalaryTopCat.csv")
+
+startSalaryTopCat$大職業別[2:7] %>% str_c(.,collapse="','")
+
+
+startSalaryTopCat %>% filter(
+  大職業別 %in% c('工業部門','礦業及土石採取業','製造業','電力及燃氣供應業','用水供應及污染整治業','營造業')
+) -> startingSalary_industrial
+
+graphList <- list()
+
+startingSalary_industrial %>%
+  filter(大職業別 !='工業部門') -> startingSalary_industrial_sub
+startingSalary_industrial_sub %>%  
+  ggplot(aes(x=大職業別))+
+  geom_col(aes(y=`經常性薪資-薪資`))-> graphList$經常薪資_col0
+
+graphList$經常薪資_col0
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

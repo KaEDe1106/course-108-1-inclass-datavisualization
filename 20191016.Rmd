@@ -219,7 +219,16 @@ graphList$圖書_ggplotOnly +
   )
 ```
 
-
+```{r}
+set.seed(2019)
+x <- rnorm(100)
+head(x)
+```
+##切割區間
+```{r}
+ggplot2::cut_interval(x,n=8) -> x_interval
+levels(x_interval)
+```
 
 
 

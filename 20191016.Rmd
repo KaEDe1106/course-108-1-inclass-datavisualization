@@ -80,6 +80,21 @@ startingSalary_industrial_sub %>%
 graphList$經常薪資_col0
 ```
 
+```{r}
+startingSalary_industrial_sub %>%
+  mutate(
+    大職業別ordered=reorder(大職業別,
+                    `經常性薪資-薪資`,order=T) # order=T才會輸出成ordered factor
+  ) -> startingSalary_industrial_sub
+
+startingSalary_industrial_sub %>%
+  ggplot()+
+  geom_col(
+    aes(x=大職業別ordered,y=`經常性薪資-薪資`)
+  ) -> graphList$經常薪資_x有排序ed_col0
+
+graphList$經常薪資_x有排序ed_col0
+```
 
 
 

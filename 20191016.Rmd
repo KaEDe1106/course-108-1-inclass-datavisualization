@@ -96,8 +96,52 @@ startingSalary_industrial_sub %>%
 graphList$經常薪資_x有排序ed_col0
 ```
 
+```{r}
+breaks_order <- levels(startingSalary_industrial_sub$大職業別ordered)
+startingSalary_industrial_sub %>%
+  ggplot()+
+  geom_col(
+    aes(x=大職業別,y=`經常性薪資-薪資`)
+  )+
+  scale_x_discrete(
+    limits=breaks_order ##用limit調整排序
+  ) -> graphList$經常薪資_x有排序ed_scaleLimits_col0
+
+graphList$經常薪資_x有排序ed_scaleLimits_col0
+```
 
 
+```{r}
+startingSalary_industrial_sub %>%  
+  ggplot(aes(x=大職業別ordered,y=`經常性薪資-薪資`))+
+  geom_col(width=0.7)+
+  scale_x_discrete(
+    limits=breaks_order
+  ) -> graphList$經常薪資_x有排序ed_scaleLimits_geomWidth_col0
+
+graphList$經常薪資_x有排序ed_scaleLimits_geomWidth_col0
+```
+
+```{r}
+#把aes寫在ggplot裡面，以後不用一直寫。不要的時候就inhe....=F
+startingSalary_industrial_sub %>%  
+  ggplot(aes(x=大職業別ordered,y=`經常性薪資-薪資`))+
+  geom_col(width=0.7)+
+  scale_x_discrete(
+    limits=breaks_order
+  ) -> graphList$經常薪資_x有排序ed_scaleLimits_geomWidth_col0
+
+graphList$經常薪資_x有排序ed_scaleLimits_geomWidth_col0
+```
+
+```{r}
+##改變長寬
+graphList$經常薪資_x有排序ed_scaleLimits_geomWidth_col0+
+  theme(aspect.ratio = 1/1.3) -> 
+  graphList$經常薪資_x有排序_scalLimits_gmWidth_asp0_col0
+
+graphList$經常薪資_x有排序_scalLimits_gmWidth_asp0_col0
+```
 
 
 

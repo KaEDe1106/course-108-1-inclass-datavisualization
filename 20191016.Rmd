@@ -143,8 +143,31 @@ graphList$經常薪資_x有排序ed_scaleLimits_geomWidth_col0+
 graphList$經常薪資_x有排序_scalLimits_gmWidth_asp0_col0
 ```
 
+```{r}
+graphList$經常薪資_x有排序ed_scaleLimits_geomWidth_col0 +
+  geom_col(width=0.5) +
+  scale_x_discrete(limits=breaks_order)+
+  theme(aspect.ratio = 1)-> 
+  graphList$經常薪資_x有排序_scalLimits_gmWidth_asp1_col0  
 
+graphList$經常薪資_x有排序_scalLimits_gmWidth_asp1_col0
+```
 
+```{r}
+graphList$經常薪資_x有排序_scalLimits_gmWidth_asp1_col0 +
+  theme(
+    axis.text.x=element_text(angle=45, hjust=1)
+    ) -> graphList$經常薪資_x有排序_scalLimits_Width_asp_textAdj_col0
+
+graphList$經常薪資_x有排序_scalLimits_Width_asp_textAdj_col0
+```
+
+```{r}
+graphList$經常薪資_x有排序_scalLimits_gmWidth_asp1_col0 +
+  coord_flip() -> graphList$經常薪資_x有排序_sclLimits_width_asp_flip_col0
+
+graphList$經常薪資_x有排序_sclLimits_width_asp_flip_col0
+```
 
 
 

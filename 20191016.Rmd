@@ -230,7 +230,35 @@ ggplot2::cut_interval(x,n=8) -> x_interval
 levels(x_interval)
 ```
 
+```{r}
+data.frame(
+  x=x,
+  xinterval=x_interval
+) -> df_x
 
+df_x %>%
+  ggplot()+
+  geom_bar(
+    aes(x=x_interval)
+  ) ##連續變數不適合用
+
+```
+
+```{r}
+df_x %>%
+  ggplot()+
+  geom_histogram(
+    aes(x=x),bins=8
+  )
+```
+##選擇適合的bin個數
+```{r}
+optimBins <- grDevices::nclass.FD(df_x$x)
+
+df_x %>%
+  ggplot(aes(x=x))+
+  geom_histogram(bins=optimBins)
+```
 
 
 

@@ -22,6 +22,147 @@ graphList$圖書_ggplotOnly +
 ```
 
 
+##以全校為一group。若不group，全部的值皆為1
+```{r}
+graphList$圖書_ggplotOnly +
+  stat_count(
+    aes(x=學院,y=stat(prop),group="全校"), 
+    geom="bar" # geom_bar內訂會取 count來當y
+  )
+```
+
+```{r}
+graphList$圖書_ggplotOnly +
+  geom_bar(
+    aes(x=學院)
+  )+
+  stat_count(
+    aes(x=學院,y=stat(count),label=stat(count)), geom="text"
+  )
+```
+
+
+
+```{r}
+df_x <- data.frame(
+  x=rnorm(500,mean=2,sd=1)
+)
+df_x %>%
+  ggplot(aes(x=x))+
+  geom_histogram(
+    aes(y=stat(count))
+  )
+```
+
+```{r}
+
+df_x %>%
+  ggplot(aes(x=x))+
+  geom_histogram(
+    aes(y=stat(density))
+  )+
+  stat_function(
+    fun=dnorm, args = list(mean=2, sd=1) # dnorm 為常態分配density函數
+  )
+```
+
+##ex.市場供需
+
+
+```{r}
+market_demand <- function(x, a=1, b=-1){
+  return(a+b*x)
+}
+
+market_supply <- function(x, a=0, b=1){
+  return(a+b*x)
+}
+```
+
+
+```{r}
+
+df_grids <- 
+  data.frame(
+    x=seq(0,1,by=0.2))
+
+df_grids
+```
+
+```{r}
+df_grids %>%
+  ggplot(aes(x=x))+
+  stat_function(
+    fun="market_demand"
+  )+
+  stat_function(
+    fun="market_supply"
+  )+
+  scale_y_continuous(
+    limits = c(0,1)
+  )+
+
+  labs(
+    x="Quantity", y="Price"
+  ) -> graphList$demand_supply
+
+graphList$demand_supply
+```
+
+#加紅線
+```{r}
+graphList$demand_supply+
+  stat_function(
+    fun="market_demand",
+    args=list(b=-2), color='red'
+  )
+```
+
+##剩餘
+
+```{r}
+df0 <- data.frame(
+      x=seq(0.25,0.5,by=0.01),
+      y=seq(0.25,0.5,by=0.01)
+    )
+df0
+```
+```{r}
+df0%>%
+  ggplot(aes(x=x,y=y))+
+  stat_summary(
+    fun.ymin = function(y) market_demand(y),
+    fun.ymax = function(y) market_supply(y),
+    geom="ribbon"
+  )
+```
+
+```{r}
+graphList$demand_supply+
+  geom_ribbon(
+    data=data.frame(
+      x=seq(0.25,0.5,by=0.01)
+    ),
+    aes(y=x),
+    stat="summary", 
+    fun.ymin= function(y) market_demand(y),
+    fun.ymax= function(y) market_supply(y),
+    alpha=0.35
+  )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

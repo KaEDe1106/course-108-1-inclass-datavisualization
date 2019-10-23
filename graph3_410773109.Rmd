@@ -1,0 +1,129 @@
+---
+title: "每週一圖作業"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(tidyr); library(showtext)
+
+font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(out.width='80%', fig.asp=.75, fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+
+此部份在做：
+
+  * 原始Rda資料引入（即引入**dataList**物件）；
+  
+  * 資料清理成作圖用graphData物件。
+
+請將你最原始的資料連同作業一起上傳到作業上傳網址：  
+  * 若「原始資料為網頁下載」，且下載指令寫在data cleaning chunk裡的話，可以不用上傳「資料」。  
+  * 若原始資料有很多個檔案，請先引入成data frame並存在「一個」.Rda檔裡上傳（如`example_data.Rda`檔）。  
+
+資料檔引入到進入作圖前的資料處理請寫在下面區塊，分二部份：
+
+  * 資料處理  
+  * 作圖用資料物件生成
+  
+```{r data cleaning, echo=TRUE, eval=T}
+graphData <- list()
+AcuteUpperRespiratoryInfections <- read_csv("https://data.cdc.gov.tw/download?resourceid=06b3e609-e6d5-4cc5-abe4-a243e025dd94&dataurl=https://od.cdc.gov.tw/eic/NHI_AcuteUpperRespiratoryInfections.csv")
+
+```
+```{r}
+
+```
+
+
+```{r}
+#觀看台灣各區域，於2008年年初至今，因急性上呼吸道感染就醫人數的變化(時間以週為尺度)(資料來源:疾病管制署資料開放平台)
+
+#1.合併變數`年`與`週`成`時間(年週)  (`時間(年週)`是觀看方便用)
+step1 <- AcuteUpperRespiratoryInfections
+step1$`時間(年週)` <- str_c(as.character(AcuteUpperRespiratoryInfections$年),"-",as.character(AcuteUpperRespiratoryInfections$週))
+step1%>%
+  select(-年,-週) -> step1
+
+
+#2.將各縣市分類成北中南東
+step2 <- step1
+logN <- step1$縣市 %in% c("台北市","新北市","基隆市","桃園市","新竹市","新竹縣","宜蘭縣")
+
+logW <- step1$縣市 %in% c("苗栗縣","台中市","彰化縣","南投縣","雲林縣")
+
+logS <- step1$縣市 %in% c("嘉義市","嘉義縣","台南市","高雄市","屏東縣")
+
+logE <- step1$縣市 %in% c("花蓮縣","台東縣")
+
+logI <- step1$縣市 %in% c("澎湖縣","金門縣","連江縣")
+
+step2$區域 <-"北部區域"
+step2[logW,]$區域 <- "中部區域"
+step2[logS,]$區域 <- "南部區域"
+step2[logE,]$區域 <- "東部區域"
+step2[logI,]$區域 <- "外島區域"
+
+
+#3.移除不需要的變數
+step2%>%
+  select(
+  急性上呼吸道感染健保就診人次,`時間(年週)`,區域
+  ) -> step3
+
+
+#4.依`時間(年週)`及`區域`分類，計算`急性上呼吸道感染健保就診人次`
+step3%>%
+  group_by(`時間(年週)`,區域)%>%
+  summarise(
+    急性上呼吸道感染健保就診人次=sum(急性上呼吸道感染健保就診人次)
+  )%>%
+  ungroup()->step4
+
+
+#5.新增一變數`週次`方便畫圖
+step5 <- step4
+step5$週次 <- 1
+
+logN1 <- step5$區域 == "北部區域"
+logE1 <- step5$區域 == "東部區域"
+logS1 <- step5$區域 == "南部區域"
+logW1 <- step5$區域 == "中部區域"
+logI1 <- step5$區域 == "外島區域"
+
+step5[logN1,]$週次 <- c(1:length(step5[logN1,]$週次))
+step5[logE1,]$週次 <- c(1:length(step5[logE1,]$週次))
+step5[logS1,]$週次 <- c(1:length(step5[logS1,]$週次))
+step5[logW1,]$週次 <- c(1:length(step5[logW1,]$週次))
+step5[logI1,]$週次 <- c(1:length(step5[logI1,]$週次))
+
+step5
+
+graphData$InfectedPeople <- step5
+```
+
+
+#### 繪圖程式
+
+```{r graph, echo=T, eval=T}
+graphData$InfectedPeople%>%
+  ggplot()+
+  geom_line(
+    aes(x=週次,y=急性上呼吸道感染健保就診人次,color=區域))+
+  theme(aspect.ratio = 1/2.5)
+```
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***之後
+*** 
+
+

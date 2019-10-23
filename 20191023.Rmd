@@ -1,0 +1,34 @@
+---
+title: '20191023'
+author: "KaEDe"
+date: "2019年10月23日"
+output: html_document
+---
+
+```{r}
+graphList$圖書_ggplotOnly+
+  geom_bar(
+    aes(x=學院) # 預設 stat="count"
+  )
+```
+
+
+```{r}
+graphList$圖書_ggplotOnly +
+  stat_count(
+    aes(x=學院), 
+    geom="bar" # geom_bar內訂會取 count來當y
+  )
+```
+
+
+
+
+
+
+
+
+
+
+
+

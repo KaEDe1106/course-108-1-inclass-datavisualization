@@ -1,0 +1,218 @@
+---
+title: "每週一圖作業"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(tidyr); library(showtext)
+
+font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(out.width='80%', fig.asp=.75, fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+
+此部份在做：
+
+  * 原始Rda資料引入（即引入**dataList**物件）；
+  
+  * 資料清理成作圖用graphData物件。
+
+請將你最原始的資料連同作業一起上傳到作業上傳網址：  
+  * 若「原始資料為網頁下載」，且下載指令寫在data cleaning chunk裡的話，可以不用上傳「資料」。  
+  * 若原始資料有很多個檔案，請先引入成data frame並存在「一個」.Rda檔裡上傳（如`example_data.Rda`檔）。  
+
+資料檔引入到進入作圖前的資料處理請寫在下面區塊，分二部份：
+
+  * 資料處理  
+  * 作圖用資料物件生成
+  
+```{r data cleaning, echo=TRUE, eval=T}
+graphData <- list()
+AcuteUpperRespiratoryInfections <- read_csv("https://data.cdc.gov.tw/download?resourceid=06b3e609-e6d5-4cc5-abe4-a243e025dd94&dataurl=https://od.cdc.gov.tw/eic/NHI_AcuteUpperRespiratoryInfections.csv")
+
+#觀看全台台灣，於2008年年初至今，因急性上呼吸道感染就醫人數的變化(時間以週為尺度)(資料來源:疾病管制署資料開放平台)
+
+#1.將`週`為個位數的值前面補一個0，之後會發揮用途
+step1 <- AcuteUpperRespiratoryInfections
+log1 <- step1$週 %in% c(1:9)
+
+step1[log1,]$週 <- str_c("0",as.character(step1[log1,]$週))
+
+
+#2.合併變數`年`與`週`成`時間(年週)`
+step1$`時間(年週)` <- str_c(as.character(step1$年),"-",as.character(step1$週))
+step1%>%
+  select(-年,-週) -> step2
+
+#3.新增一變數`人次`，計算全台各週因急性上呼吸道感染健保就診人次
+step2%>%
+  group_by(`時間(年週)`)%>%
+  summarise(人次=sum(急性上呼吸道感染健保就診人次)) ->step3
+
+#4.新增一變數`週次`，將`時間(年週)`排序，如此一來在繪圖時比較方便(第一步補0可以避免在這裡出錯)
+step4 <- step3
+step4$週次 <- c(1:length(step3$`時間(年週)`))
+
+step4
+
+graphData$InfectedPeople <- step4
+#####完成基礎資料處理#####
+
+
+
+###看圖形後發現有規律性變化，在高峰處畫上陰影
+#觀察:高峰處大約從每年12月到3月，`週`為49到12，找`週次`值為多少，作為rect的開始與結尾
+step4$`時間(年週)`%>%
+  str_detect("-49") -> logHighStart
+step4$`時間(年週)`%>%
+  str_detect("-12") -> logHighEnd
+
+graphData$Rect_high <-
+  data.frame(
+    xstart= step4[logHighStart,]$週次,
+    xend= step4[logHighEnd,]$週次
+  )#rect的範圍由每年的高峰開始週次到高峰結束週次
+###處理完畢###
+
+
+
+####將rect的高度訂在每個高峰期的最高人次值
+#創造一個vector，代表每一個高峰期間的最高人次是在第幾週次。目前是空的，等等用迴圈補上內容
+MaxPeopleInEveryYearAtWhen <- vector("character",length(step4[logHighStart,]$週次)) 
+
+#創造一個函數，輸入值為i，產生第i年高峰開始及結束是第幾週次到第幾週次
+fun_high_fromto <- function(i){
+  fromtoi<-step4[logHighStart,]$週次[i]:step4[logHighEnd,]$週次[i]
+  return(fromtoi)
+}
+
+#一一解釋迴圈步驟:
+for(i in seq_along(step4[logHighEnd,]$週次)){ #step4[logEnd,]$週次 代表每一年高峰結束是第幾週次，而外面放seq_along()後，能使i從1代到(一共有幾次高峰)
+   #求第i次高峰期間，最高人次是在第幾週次
+  MaxPeopleInEveryYearAtWhen[i] <- step4[fun_high_fromto(i),][(step4[fun_high_fromto(i),]$人次 == max(step4[fun_high_fromto(i),]$人次)),]  
+  #先從step4中求出第i次高峰的整個dataframe，再從其中找到這期裡面人次最高的那一筆資料，並且存入MaxPeopleInEveryYearAtWhen。不知為甚麼在迴圈中只會回存第一個變數底下的值
+}
+
+MaxPeopleInEveryYearAtWhen #不明原因，跑出來的會是每一次的高峰，人次最高的`時間(年週)`
+
+#取出該週次及人次，放回Rect_high
+logMax <- step4$`時間(年週)` %in% MaxPeopleInEveryYearAtWhen
+graphData$Rect_high$ymax <- step4[logMax,]$人次
+####處理完畢####
+
+
+
+###令x軸break在每年12月，並且label成每年12月到隔年3月
+step4$`時間(年週)`%>%
+  str_detect(c("-49")) ->logDecweek
+step4[logDecweek,]$週次 ->XBreakDecWeek
+
+step4[logDecweek,]$`時間(年週)` %>%
+  str_replace("-49","年12月至隔年3月") -> xLabel
+###處理完畢###
+
+
+
+###再做一次rect，這次在每年低峰(6月到9月)處畫上陰影
+step4$`時間(年週)`%>%
+  str_detect("-21") -> logLowStart
+step4$`時間(年週)`%>%
+  str_detect("-37") -> logLowEnd
+
+graphData$Rect_Low <-
+  data.frame(
+    xstart= step4[logLowStart,]$週次,
+    xend= step4[logLowEnd,]$週次
+  )
+###處理完畢###
+
+
+####將rect的高度訂在每個低峰期的最低人次值
+MinPeopleInEveryYearAtWhen <- vector("character",length(step4[logLowStart,]$週次)) 
+
+fun_low_fromto <- function(i){
+  fromtoi<-step4[logLowStart,]$週次[i]:step4[logLowEnd,]$週次[i]
+  return(fromtoi)
+}
+
+for(i in seq_along(step4[logLowEnd,]$週次)){
+  MinPeopleInEveryYearAtWhen[i] <- step4[fun_low_fromto(i),][(step4[fun_low_fromto(i),]$人次 == min(step4[fun_low_fromto(i),]$人次)),]  
+}
+
+logMin <- step4$`時間(年週)` %in% MinPeopleInEveryYearAtWhen
+graphData$Rect_Low$ymax <- step4[logMin,]$人次
+####處理完畢####
+
+
+
+
+###看圖形後找恰當的y軸break
+#round() 取四捨五入到整數後的值
+round(min(graphData$Rect_high$ymax))
+round(max(graphData$Rect_high$ymax))
+
+YBreakPeople <- c(200000,400000,600000,800000)
+YLabel <- c(20,40,60,80)
+###處理完畢###
+```
+
+
+
+
+#### 繪圖程式
+
+```{r graph, echo=T, eval=T}
+graphData$InfectedPeople%>%
+  ggplot()+
+  geom_line(
+    aes(x=週次,y=人次)
+    )+
+  geom_rect(
+    data = graphData$Rect_high,
+    mapping = aes(
+      xmin=xstart,
+      xmax=xend,
+      ymin=(-Inf),
+      ymax=ymax
+    ),alpha=0.25,fill="red"
+  )+
+  theme(aspect.ratio = 1/4)+
+  labs(
+    title = "因急性上呼吸道感染之健保就診人次",
+    caption = "資料來源:疾病管制署資料開放平台網"
+    )+
+  scale_x_continuous(name = "時間" , breaks=XBreakDecWeek,labels = xLabel)+
+  scale_y_continuous(name = "人次(萬)", breaks = YBreakPeople,labels=YLabel)+
+  theme(axis.text.x = element_text(angle = 30,hjust = 0.97))+
+  geom_rect(
+    data = graphData$Rect_Low,
+    mapping = aes(
+      xmin=xstart,
+      xmax=xend,
+      ymin=(-Inf),
+      ymax=ymax
+    ),alpha=0.4
+  )
+
+```
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***之後
+*** 
+圖為從2008年以來，因**急性上呼吸道感染**而**健保就醫**的人數變化趨勢。
+
+我們可以看到圖形呈現**週期性變化**，一般而言，**就醫高峰**落在每年的`12月`到`隔年3月`，人數因每年而異，落在**60萬到80萬以上**。
+
+而**就醫低峰**大約落在每年的`6月`到`9月`，每年都不超過**40萬人次**。
+
+說明了每年`夏季`(就醫低峰)的`就醫人數變化不大`；而`冬季`(就醫高峰)的`就醫人數變化較大`，約為**夏季的1.5倍至2倍以上**。
+

@@ -1,0 +1,122 @@
+---
+title: "每週一圖作業資料檔"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+rm(list=ls())
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(colorspace); library(grDevices); library(shiny); library(shinyjs); library(scales)
+library(tidyr); library(showtext); library(tidyverse); library(colorspace)
+
+#font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+  
+```{r data cleaning, echo=TRUE, eval=T}
+##原資料序號【011】圖為從2008年以來，因急性上呼吸道感染而健保就醫的人數變化趨勢。
+load(url("https://github.com/tpemartin/course-108-1-inclass-datavisualization/blob/master/%E4%BD%9C%E5%93%81%E5%B1%95%E7%A4%BA/homework3/graphData_homework3_011.Rda?raw=true"))
+names(graphData$InfectedPeople) -> name0
+tmcn::toUTF8(name0) -> names(graphData$InfectedPeople)
+
+
+#利用散佈圖表達每年的`週次`以及`人次`的關係圖
+#####original#####
+#1.將`週次`變數設定為(每年的第幾週)。每一年第a週的資料，`週次`值都會是a，因此`週次`值為a的資料有n筆，n值依據資料來源提供了幾年的資料。
+graphData$InfectedPeople$週次 <- as.numeric(str_sub(graphData$InfectedPeople$`時間(年週)`,6,7)) 
+ 
+#2.為了得到每週平均感染人次，先做一個空的vector，等等迴圈用)
+MeanPeopleEveryWeek <-  vector("numeric",length(unique(graphData$InfectedPeople$週次))) #看共有幾週次
+
+#3.得到每周平均感染人次
+for(i in seq_along(unique(graphData$InfectedPeople$週次))){ #i值從1代到(共有幾週次)
+  
+  MeanPeopleEveryWeek[i] <- sum( graphData$InfectedPeople[ (graphData$InfectedPeople$週次 == i), ]$人次 ) / sum( graphData$InfectedPeople$週次 == i )
+  #取出每年第i週的就醫人次取加總，除以一共有n個第i週
+}
+
+#4.建立一dataframe，變數包含`平均人次`及`週次`
+graphData$averagePeople <- data.frame(
+  平均人次= MeanPeopleEveryWeek,
+  週次= seq_along(unique(graphData$InfectedPeople$週次))
+)
+#####資料處理完畢#####
+
+
+
+#A.發現`週次`與`人次`是有關聯的，先畫一條輔助線，高度為總平均，判斷高峰低峰的週次，以及人數的break
+MeanPeople <- sum(graphData$InfectedPeople$人次)/nrow(graphData$InfectedPeople)
+YBreakPeople <- c(350000,400000,450000,550000,600000,650000,700000,800000,900000)
+YLabel <- c(35,40,45,55,60,65,70,80,90)
+
+#B.在低峰時加上灰色陰影區塊，在高峰時加上紅色陰影區塊
+#發現低峰在6月到9月(週次在21到37之間)，高峰在12月到隔年3月(週次在49到53及1到13之間)
+graphData$Rect_high <- data.frame(
+  xstart = c(1,49),
+  xend = c(13,53),
+  ymin=-Inf,
+  ymax=Inf
+)
+graphData$Rect_Low <- data.frame(
+  xstart = 21,
+  xend = 37,
+  ymin=-Inf,
+  ymax=Inf
+)
+
+#C.解釋藍色線、紅色區塊、灰色區塊
+
+#D.取x的break
+XBreak <- c(1,13,21,37,49,53)
+
+#E.加上標題
+
+#F.覺得高峰時的趨勢線很奇怪，估計是誤差值影響。刪除在高峰時，`人次`值低於40萬的資料再取平均
+#把高峰分成兩段-1 第1~13週次
+graphData$InfectedPeople[graphData$InfectedPeople$週次 %in% c(1:13),] -> data_high1 #取出第一段高峰期的df
+data_high_fixed1 <- data_high1[(data_high1$人次> 400000),] #刪去第一段高峰期之中，過低的資料
+
+#空vector
+MeanPeopleEveryWeek_fixed1 <-  vector("numeric",length(unique(data_high_fixed1$週次)))
+#利用迴圈填滿空vector，得到修正後各週次平均人次
+for(i in seq_along(unique(data_high_fixed1$週次))){ 
+  MeanPeopleEveryWeek_fixed1[i] <- sum(data_high_fixed1[data_high_fixed1$週次 == i ,]$人次)/sum(data_high_fixed1$週次 == i )
+}
+#修正後的第一段高峰期df
+graphData$averagePeople_fixed1 <- data.frame(
+  平均人次= MeanPeopleEveryWeek_fixed1,
+  週次= seq_along(unique(data_high_fixed1$週次))
+)
+
+#把高峰分成兩段-2 第49~53週次
+graphData$InfectedPeople[graphData$InfectedPeople$週次 %in% c(49:53),] -> data_high2#取出第二段高峰期的df
+data_high_fixed2 <- data_high2[(data_high2$人次> 400000),]
+
+data_high_fixed2$新週次 <- data_high_fixed2$週次-48 #迴圈時會利用變數`新週次`
+
+#空vector
+MeanPeopleEveryWeek_fixed2 <-  vector("numeric",length(unique(data_high_fixed2$週次)))
+#利用迴圈填滿空vector，得到修正後各週次平均人次
+for(i in seq_along(unique(data_high_fixed2$週次))){ 
+  MeanPeopleEveryWeek_fixed2[i] <- sum(data_high_fixed2[data_high_fixed2$新週次 == i ,]$人次)/sum(data_high_fixed2$新週次 == i )
+}
+#修正後的第二段高峰期df
+graphData$averagePeople_fixed2 <- data.frame(
+  平均人次= MeanPeopleEveryWeek_fixed2,
+  週次= c(49:53)
+)
+
+#######儲存物件######
+save(graphData,MeanPeople,YBreakPeople,YLabel,XBreak, file="graphData.Rda")
+```
+
+

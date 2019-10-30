@@ -1,0 +1,128 @@
+---
+title: "每週一圖作業繪圖說明檔"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+rm(list=ls())
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(colorspace); library(grDevices); library(shiny); library(shinyjs); library(scales)
+library(tidyr); library(showtext); library(tidyverse); library(colorspace)
+
+#font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T)
+```
+
+
+#### 繪圖程式
+
+```{r graph, echo=T, eval=T}
+load("graphData.Rda")
+
+
+graphData$InfectedPeople%>%
+  ggplot()+
+  geom_point(color="purple",alpha=0.2,
+    aes(x=週次,y=人次)
+  )+
+  geom_line(
+    data = graphData$averagePeople,
+    mapping = 
+      aes(x=週次,y=平均人次),
+    color="blue",alpha=0.7,size=1.3
+  )+ #-------------------------------original^
+  scale_y_continuous(name = "人次(萬)", breaks = YBreakPeople,labels=YLabel)+
+  geom_hline(yintercept = MeanPeople,color="brown",linetype="longdash",size=1.5,alpha=0.8
+             )+ #--------------------A^
+  geom_rect(
+    data = graphData$Rect_high,
+    mapping = aes(
+      xmin=xstart,
+      xmax=xend,
+      ymin=ymin,
+      ymax=ymax
+    ),fill="red",alpha=0.12
+  )+
+  geom_rect(
+    data = graphData$Rect_Low,
+    mapping = aes(
+      xmin=xstart,
+      xmax=xend,
+      ymin=ymin,
+      ymax=ymax
+    ),fill="black",alpha=0.2
+  )+#--------------------------------B^
+  geom_text(x=10,y=930000,label="1月~3月",color="red",size=5)+
+  geom_text(x=33,y=930000,label="6月~9月",color="black",size=5)+
+  geom_text(x=51,y=930000,label="12月",color="red",size=5)+
+  geom_text(x=52,y=420000,label="就醫人次趨勢",color="blue")+
+  geom_text(x=24,y=270000,label="就醫低峰",color="black",size=4.5)+
+  geom_text(x=10,y=270000,label="就醫高峰",color="red",size=4.5)+
+  geom_text(x=51,y=270000,label="就醫高峰",color="red",size=4.5
+            )+ #---------------------C^
+  scale_x_continuous(breaks = XBreak
+                     )+#-------------D^
+  labs(
+    title = "各週次因急性上呼吸道感染之健保就診人次",
+    subtitle = "資料由2008年3月統計至2019年9月",
+    caption = "資料來源:疾病管制署資料開放平台網"
+    )+#------------------------------E^
+  geom_line(
+    data = graphData$averagePeople_fixed1,
+    mapping = 
+      aes(x=週次,y=平均人次),
+    color="blue",alpha=0.4,size=1.3
+  )+
+  geom_line(
+    data = graphData$averagePeople_fixed2,
+    mapping = 
+      aes(x=週次,y=平均人次),
+    color="blue",alpha=0.4,size=1.3
+  )#---------------------------------F^
+
+  
+```
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***下一行。
+
+*** 
+此圖表示各週次因急性上呼吸道感染之健保就診人次(資料由2008年3月統計至2019年10月)
+
+深藍色實線為各週次，在不同年份中的人次平均值所連成的軌跡，觀察其將能看出就醫人次趨勢。
+
+由藍色的趨勢線，我們可以發現，**週次**與**就醫人次**是**有關聯**的:
+
+1.第21到37週次，也就是每年的**6月到9月**時，就醫人次普遍較低，為**就醫低峰**,
+
+2.每年的第1到13、第49到53週次，也就是**12月到隔年3月**，就醫人次普遍偏高，為**就醫高峰**。
+
+由於在就醫高峰之中有幾筆資料不尋常的低，將其刪去後，`修正後的趨勢線以較淡的藍色表示`。
+
+另外，觀察各點的分布情形，我們可以得知:
+
+1.在**就醫低峰**期間，**就醫人次較為接近**,
+
+2.在**就醫高峰**期間，**各年就醫人次差異較大**。
+
+/
+
+設計想法:
+原本的設計(`折線圖`)能明顯看出就醫人次呈現**週期性變化**，也能**詳細觀察各年的變化**，但是其他資訊較為不直觀。而且隨著資料量的增加，圖形將越來越長，屆時一眼能看到的資訊僅有週期性。
+
+把圖形轉成`散佈圖`後，即將年份的資訊捨棄，圖形中*看不出來各年的詳細變化情況*。但`散佈圖`有以下**優點**:
+
+1.**圖形不會因為資料量的增加而變長**,
+
+2.更能將重點擺在**週次與就醫人次的關係**，而非各年的詳細變化情況,
+
+3.更直觀看出**在相同週次，不同年間的人次差異大小**。
+
+因此選擇改用`散佈圖`。

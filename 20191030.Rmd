@@ -45,7 +45,7 @@ ggpubr::ggarrange(
 ```{r}
 ggplot()+theme_linedraw()+  #linedrad+格線
   scale_x_continuous(limits=c(0,6),breaks=0:6,
-                     expand=expand_scale(add=c(0,0)))+
+                     expand=expand_scale(add=c(0,0)))+ #留多少空白?(0,0)
   scale_y_continuous(limits=c(0,6),breaks=0:6,
                      expand=expand_scale(mult = c(0,0))) ->
   myGrids

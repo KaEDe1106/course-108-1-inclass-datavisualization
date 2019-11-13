@@ -1,0 +1,176 @@
+---
+title: '20191113'
+author: "KaEDe"
+date: "2019年11月13日"
+output: html_document
+---
+
+
+```{r}
+library(sf)
+```
+
+st_<geometry type>(<geometry record>)
+
+```{r}
+mpoint <- st_multipoint(
+    rbind(c(1,0),
+        c(2,3),
+        c(-1,2))
+)
+
+mpoint %>% ggplot()+geom_sf()
+```
+
+
+```{r}
+mline <- st_multilinestring(
+  list(
+    rbind(
+      c(1,0),
+      c(2,3),
+      c(-1,3)),
+    rbind(
+      c(-2,3),
+      c(-1,-1))
+    )
+  )
+
+mline %>% ggplot()+geom_sf()
+```
+sf下多邊體的最後一個座標必需是第一個座標；ggplot2則不用，自動假設連回第一個 。
+
+sf以第一個ring（即多邊體邊界一圈）為outer ring，其餘為holes。ggplot2則需定義group及subgroup兩個變數後，才能自動判斷哪個ring為ourter，哪個ring為holes。
+```{r}
+outer <-     
+  rbind( # 外圍
+    c(1,5),
+    c(2,1),
+    c(5,1),
+    c(5,5),
+    c(1,5)) # 必需自行輸入起點close it
+
+hole <-
+  rbind( # 洞
+    c(2,4),
+    c(3,2),
+    c(4,3),
+    c(2,4))  # 必需自行輸入起點close it
+  
+poly <- st_polygon(
+  list(
+    outer, 
+    hole
+  )
+) 
+
+poly %>% ggplot()+geom_sf()
+```
+
+```{r}
+outer2 <- outer + 4
+hole2 <- hole + 4
+
+mpoly <- st_multipolygon(
+  list(
+    list(
+      outer,
+      hole
+    ),
+    list(
+      outer2,
+      hole2
+    )
+  )
+) 
+
+mpoly %>% ggplot()+geom_sf()
+```
+
+```{r}
+st_geometrycollection(
+  list(
+    mpoint,
+    mline,
+    poly, mpoly
+  )
+) %>% ggplot()+ geom_sf()
+```
+
+
+
+```{r}
+sfg_county1 <- st_polygon(list(
+  outer,hole
+))
+sfg_county2 <- st_polygon(list(
+  outer2, hole2
+))
+
+sfc_county12column <- st_sfc(sfg_county1,sfg_county2)
+
+sfc_county12column %>% ggplot+geom_sf()
+```
+
+
+```{r}
+sfc_county12column %>%
+  st_set_crs(4326) -> # EPSG: 4326
+  sfc_county12column
+```
+
+
+
+```{r}
+df_county12 <- data.frame(
+  name=c("county1","county2"),
+  population=c(100,107)
+)
+
+df_county12 %>%
+  st_set_geometry(sfc_county12column) -> df_county12
+
+df_county12
+df_county12 %>% names
+
+df_county12 %>%
+  ggplot()+geom_sf()+
+  
+```
+
+
+```{r}
+dir.create("county12")
+write_sf(df_county12,"county12/county12.shp")
+```
+
+
+
+#####################
+```{r}
+load(url("https://www.dropbox.com/s/uvco1te2kbs6o01/MRT_Taipei.Rda?dl=1"))
+```
+
+```{r}
+sf_mrt_tpe$geometry
+```
+
+```{r}
+sf_mrt_tpe$經過路線%>%
+  str_detect("BL") -> logBL
+sf_mrt_tpe_BL <- sf_mrt_tpe[logBL,]
+
+sf_mrt_tpe_BL%>% #先排序，再取出座標
+  mutate(
+    站號= str_extract(
+      經過路線,"(?<=(BL))[:digit:]+"  #取出前面包含BL的數字(無論幾位數)
+    )
+  )%>%
+  arrange(站號) ->sf_mrt_tpe_BL_arr
+
+sf_mrt_tpe_BL_arr%>%
+  st_coordinates()%>% ##取出座標
+  st_linestring()%>% ##畫成線
+  ggplot()+geom_sf() ##丟到plot裡
+```
+

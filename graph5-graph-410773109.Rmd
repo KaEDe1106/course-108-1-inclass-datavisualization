@@ -1,0 +1,143 @@
+---
+title: "每週一圖作業繪圖說明檔"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+rm(list=ls())
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(colorspace); library(grDevices); library(shiny); library(shinyjs); library(scales)
+library(tidyr); library(showtext); library(tidyverse); library(colorspace)
+
+#font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T)
+```
+
+
+#### 繪圖程式
+
+```{r graph, echo=T, eval=T}
+load("graphData.Rda")
+graphData$back%>%
+  ggplot()+
+  geom_path(
+    aes(x=x1,y=y1)
+  )+
+  geom_path(
+    aes(x=x2,y=y2)
+  )+
+  geom_path(
+    aes(x=x3,y=y3)
+  )+
+  geom_path(
+    aes(x=x4,y=y4)
+  )+
+  geom_path(
+    aes(x=x5,y=y5)
+  )+
+  theme(aspect.ratio = 1,
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())+
+  geom_polygon(
+    data = graphData$I,
+    mapping = aes(x=x,y=y),
+    fill="#32bb89"
+  )+
+  geom_text(
+    mapping = aes(x=graphData$back$x5,
+                  y=graphData$back$y5,
+                  label=graphData$back$label),size=8
+  )+
+  geom_path(
+    aes(x=x1,y=y1),alpha=0.15
+  )+
+  geom_path(
+    aes(x=x2,y=y2),alpha=0.15
+  )+
+  geom_path(
+    aes(x=x3,y=y3),alpha=0.15
+  )+
+  geom_path(
+    aes(x=x4,y=y4),alpha=0.15
+  )+
+  geom_path(
+    aes(x=x5,y=y5),alpha=0.15
+  )+
+  geom_point(
+    data = graphData$o,
+    mapping = 
+      aes(x=x,y=y),
+      alpha=0.6
+  )+
+  annotate(
+    "text",
+    x=-2.3,y=c(6,5.4,6.5),
+    label=c("熱心助人","有禮貌","誠實")
+  )+
+  annotate(
+    "text",
+    x=5,y=c(3.5,4.1),
+    label=c("讀書有效率","學習力佳")
+  )+
+  annotate(
+    "text",
+    x=5.2,y=c(-5),
+    label=c("無特殊表現")
+  )+
+  annotate(
+    "text",
+    x=-5,y=c(-5,-4.4),
+    label=c("溫和友善","負責任")
+  )+
+  annotate(
+    "text",
+    x=-6.2,y=c(0.6,0,-0.6),
+    label=c("音樂","大自然","新詩")
+  )+
+  geom_point(
+    data = graphData$p1,
+    mapping = aes(x=x,y=y),alpha=0.3
+  )+
+  geom_point(
+    data = graphData$p2,
+    mapping = aes(x=x,y=y),alpha=0.25
+  )+
+  geom_point(
+    data = graphData$p3,
+    mapping = aes(x=x,y=y),alpha=0.2
+  )+
+  geom_point(
+    data = graphData$p4,
+    mapping = aes(x=x,y=y),alpha=0.15
+  )
+  
+
+
+```
+
+
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***下一行。
+
+*** 
+此圖可以看到我在**五育之中較為突出以及較為缺乏的項目**。
+
+因為我的資料幾乎不是數據，故無法運用`散佈圖`、`盒狀圖`等圖形，所以我選用`雷達圖`，並且擅自將資料量化。
+
+使用`雷達圖`來表達這些資料的**優點**是能將不同種類的資料分成幾個大類別後，再依據某些原則，點出各分類的位置。其將**大幅簡化比較種種資料的過程**，我們可以清楚比對原始種種資料在**各分類的相對強度**。
+
+這些資料使用`雷達圖`表現的**缺點**包括:
+
+1.沒有(無法)將資料經過量化、標準化等步驟。故該圖形**非常的主觀**，沒有參考依據。
+
+2.**許多資訊無法被表達出來**。(舉例來說，"樂觀"便不屬於任何一類；又或者無法使用合適的方式，表現"記性差"在"智"的分類中，具有扣分效果。)

@@ -1,0 +1,105 @@
+---
+title: '20191120'
+author: "KaEDe"
+date: "2019年11月20日"
+output: html_document
+---
+
+
+```{r}
+# 取出spData套件附的world data
+read_sf("COUNTY_MOI_1080726.shp")-> sf_taiwan
+```
+
+```{r}
+# 取出spData套件附的world data
+data(world,package="spData")
+class(world) # 已是sf object
+```
+
+```{r}
+# 目前CRS
+world %>% st_crs 
+sf_taiwan %>% st_crs
+```
+
+```{r}
+world %>% st_geometry() %>%
+  ggplot()+geom_sf()
+```
+
+```{r}
+world %>% 
+  st_transform(crs="+proj=laea +y_0=0 +lon_0=155 +lat_0=-90 +ellps=WGS84 +no_defs") -> world_proj
+  
+world_proj %>%
+  ggplot()+geom_sf()
+```
+
+
+
+```{r}
+load(url("https://www.dropbox.com/s/elnvocol0nnkcc9/sf_northTaiwan.Rda?dl=1"))
+sf_northTaiwan %>%
+  st_centroid(of_largest_polygon = T) ->
+  sf_centroid_northTaiwan
+
+sf_northTaiwan
+sf_centroid_northTaiwan
+```
+
+
+```{r}
+load(url("https://www.dropbox.com/s/uvco1te2kbs6o01/MRT_Taipei.Rda?dl=1"))
+```
+
+```{r}
+sf_mrtStops_tpe$經過路線 %>%
+  str_detect("BL") -> logBL
+sf_mrtStops_tpe[logBL,] -> sf_mrtStops_BL
+```
+
+```{r}
+sf_mrtStops_BL %>%
+  mutate(
+      站號=str_extract(經過路線,"(?<=(BL))[:digit:]+")
+            ) %>%
+  arrange(站號) -> sf_mrtStops_BL
+
+sf_mrtStops_BL %>% View
+```
+
+##先coord_sf會出事
+```{r}
+sf_northTaiwan %>%
+  ggplot()+geom_sf()+
+  geom_sf(
+    data=sf_mrtStops_BL
+  )+
+  coord_sf(
+    xlim=c(121.4,121.7),
+    ylim=c(24.9,25.1)
+  ) -> gg_tpe_mrt
+gg_tpe_mrt
+```
+
+
+```{r}
+sf_mrtStops_BL%>%
+  st_coordinates()
+```
+
+
+##法二
+
+```{r}
+sf_mrtStops_BL
+```
+
+
+
+
+
+
+
+

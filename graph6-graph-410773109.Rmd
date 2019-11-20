@@ -1,0 +1,55 @@
+---
+title: "每週一圖作業繪圖說明檔"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+rm(list=ls())
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(colorspace); library(grDevices); library(shiny); library(shinyjs); library(scales)
+library(tidyr); library(showtext); library(tidyverse); library(colorspace)
+
+#font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T)
+```
+
+
+#### 繪圖程式
+
+```{r graph, echo=T, eval=T}
+load("graphData.Rda")
+
+graphData$TWmap+
+  geom_point(
+    data = graphData$point,
+    mapping = aes(x=x,y=y),color="red",size=1,alpha=0.7
+  )+
+  theme(axis.line = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())+
+  labs(
+    title = "在諸多高中、大學、政府單位等機關擔任講師",
+    subtitle = "講授逾1000位大專院校學生"
+  )
+
+```
+
+
+
+#### 設計說明
+說明想傳達的訊息（必要）及設計想法（非必要）。寫在***下一行。
+
+*** 
+資料來自於**潘芷盈**在cakeresume的履歷。(網址:https://www.cakeresume.com/jean-pang)
+
+她提到，她經常擔任**簡報與懶人包設計的講師**，講授逾1000位大專院校學生。她列了一個表，其中記錄著於何時在哪裡擔任講師，我經過手動匯入各次講座舉辦地點之座標，將其轉為地圖上的點，表達她在各地皆有擔任過講師的經驗。
+
+比較可惜的部分是，她並沒有提供擔任婚禮主持主唱之地點之資訊。畢竟她說有超過50場主持經驗，若用不同的顏色點在此圖上，這張地圖會更豐富。故這張圖的重點仍然擺在她曾**於諸多機關擔任講師**

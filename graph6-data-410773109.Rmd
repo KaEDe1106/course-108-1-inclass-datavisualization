@@ -1,0 +1,57 @@
+---
+title: "每週一圖作業資料檔"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+rm(list=ls())
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(colorspace); library(grDevices); library(shiny); library(shinyjs); library(scales)
+library(tidyr); library(showtext); library(tidyverse); library(colorspace)
+
+#font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+  
+```{r data cleaning, echo=TRUE, eval=T}
+##將演講過的地點以地圖上的點表示
+graphData <- list()
+
+#讀入地圖
+load("TWmap.Rda")
+#移除外島，選取適當的地圖範圍
+!(twmap$COUNTYID %in% c("W","X","Z")) -> logmain
+twmap$geometry[logmain]%>%
+  ggplot()+geom_sf()+
+  xlim(118.5,123)+ylim(21,26) -> graphData$TWmap
+
+#手動引入演講的地點及座標
+teachplace <- data.frame(
+  地點=c("財政部國有財產署 南區","嘉義大學","財政部國有財產署 北區","屏東科技大學 企業管理所","屏東科技大學 職涯發展處","逢甲大學領知中心","中原大學","逢甲大學 圖書館","高雄醫學大學","元智大學","台北商業大學","彰化女中 ","屏東大學 ","長庚大學","彰化師範大學","國立交通大學 ","台灣科技大學","中國醫藥大學","國際扶輪青年3510地區","花蓮慈濟大學"),
+  座標=c("22.658515, 120.312012","23.491787, 120.460084","25.041276, 121.555895","22.647751, 120.611704","22.643712, 120.609785","24.178711, 120.647785","24.957703, 121.241127","24.178686, 120.648944","22.645246, 120.310436","24.970335, 121.267570","25.042004, 121.525646","24.081287, 120.543715","22.666506, 120.505093","25.033487, 121.387453","24.080733, 120.558004","24.786698, 120.998228","25.012434, 121.541267","24.156351, 120.680090","22.630244, 120.288923","23.993295, 121.589582")
+)
+
+#將座標轉為正確的格式，存回名為`graphData`的list中
+teachplace%>%
+  transmute(
+    地點=地點,
+    y=as.numeric(str_sub(座標,1,9)) ,
+    x=as.numeric(str_sub(座標,12,21))
+  ) -> graphData$point
+
+
+
+#######儲存物件######
+save(graphData, file="graphData.Rda")
+```
+
+

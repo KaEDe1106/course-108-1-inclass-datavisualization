@@ -59,6 +59,7 @@ allEvent_ArrByTime
 ##讓人了解何者管道成效較為顯著
 ##做兩個圓餅圖，其一的統計範圍為至今，其二統計範圍為最近兩週。mouseover一圓餅圖，顯示三者管道的比例關係及確切人氣數值。
 
+
 #各來源累計人氣
 nrow(allEvent_ArrByTime[allEvent_ArrByTime$from=="website",]) -> websiteWatched
 nrow(allEvent_ArrByTime[allEvent_ArrByTime$from=="poster",]) -> posterWatched
@@ -87,6 +88,7 @@ sourcePieChart+
 
 sourcePieChart
 
+##1228:嘗試失敗，僅完成累計人氣圓餅圖，而且既非framable，也沒套用JavaScript
 ```
 
 
@@ -97,7 +99,7 @@ sourcePieChart
 #2.比較各活動人氣(取最近5個活動，若同期活動超過5個，則保留所有同期活動)。mouseover一點，可看到確切人氣值
 
 #每個活動的第一個關注起，1周內的累計關注折線圖
-#可以看到不同活動，在發布後兩周的關注情形
+#可以看到不同活動，在發布後1周的關注情形
 
 
 #----------------------------------------
@@ -164,6 +166,8 @@ popularityCompareLineChart%>%
   ggplotly() ->popularityCompareLineChart
 
 popularityCompareLineChart
+
+##1228:未處理當event超過5個時，要如何解決
 ```
 
 
@@ -295,6 +299,8 @@ InputEventToGetThePtly("青銀共賞電影") ->cumulatedMovie
 InputEventToGetThePtly("北大玩具節") ->cumulatedToy
 InputEventToGetThePtly("聖誕點燈暨北大管樂節") ->cumulatedXmas
 cumulatedMovie
+
+##1228:符合預期
 ```
 
 

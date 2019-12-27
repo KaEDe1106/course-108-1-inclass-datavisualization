@@ -1,0 +1,39 @@
+---
+title: "Untitled"
+author: "KaEDe"
+date: "2019年12月18日"
+output: html_document
+---
+
+#下載上課用檔案
+```{r}
+dir.create(
+  "./1211"
+)
+download.file("https://raw.githubusercontent.com/tim8537099/course-108-1-inclass-datavisualization/master/example/tet.Rmd",
+              destfile="1211/tet.Rmd"
+)
+download.file("https://github.com/tim8537099/course-108-1-inclass-datavisualization/blob/master/example/plot_us.Rda?raw=true",
+              destfile="1211/plot_us.Rda"
+)
+
+file.edit("1211/tet.Rmd")
+```
+
+#在課堂練習的sourse中，讀取函數，此函數可以創建資料夾，放上模板
+```{r}
+webapp_project_create(
+  dirlib = "./1211/webapp",
+  overwrite = T
+)
+```
+
+
+```{r}
+download.file("https://www.dropbox.com/s/99tfecfkblpsij8/getSVGelement.zip?dl=1",
+              destfile = "getSVGelement.zip")
+unzip("getSVGelement.zip")
+```
+
+
+

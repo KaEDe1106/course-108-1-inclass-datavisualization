@@ -1,0 +1,69 @@
+---
+title: "Popularity Analyst"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+```{r basic setup, message=FALSE, echo=F, eval=T}
+rm(list=ls())
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(colorspace); library(grDevices); library(shiny); library(shinyjs); library(scales)
+library(tidyr); library(showtext); library(tidyverse); library(colorspace)
+
+#font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T)
+```
+
+Column {data-width=600 .tabset}
+-----------------------------------------------------------------------
+
+```{r}
+load("graph.Rda")
+```
+
+
+### **北大玩具節**
+
+```{r}
+graph$cumulatedToy
+```
+
+
+### **青銀共賞電影**
+
+```{r}
+graph$cumulatedMovie
+```
+
+### **聖誕點燈暨北大管樂節**
+```{r}
+graph$cumulatedXmas
+```
+
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+
+### **各管道成效分析**
+
+
+```{r echo=F, eval=T}
+
+graph$sourcePieChart
+```
+
+
+### **各活動人氣比較**
+
+```{r}
+graph$popularityCompareLineChart
+```
+
+

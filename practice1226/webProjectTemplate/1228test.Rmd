@@ -1,0 +1,37 @@
+---
+title: "1228test"
+output: 
+  html_document:
+    css: ['css/mystyle.css']
+    includes:
+      in_header: ["external/in_header/header.html"]
+      before_body: ["external/before_body/bf_body.html"]
+      after_body: ["external/after_body/af_body.html"]
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(tidyr); library(showtext); library(sf); library(osmdata); library(rmapshaper); library(htmlwidgets); library(widgetframe); library(htmltools)
+library(spData); library(colorspace)
+
+
+showtext_auto(enable=TRUE) #啟用字體
+#theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T, echo = TRUE)
+```
+
+<script>
+var map=document.getElementById('graph4').contentDocument
+var uber=map.getElementById('GRID.rastergrob.100.1')
+//GRID.rastergrob.100.1
+var changeArea=document.getElementById('answer')
+
+function change(){
+    changeArea.innerHTML="uber news"
+}
+
+uber.addEventListener("mouseover",change)
+</script>
+
+<object id="graph4" data="plot1.svg" type="image/svg+xml" width="100%"></object>
+<div id="answer">12123</div>

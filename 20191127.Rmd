@@ -1,0 +1,169 @@
+---
+title: '20191127'
+author: "KaEDe"
+date: "2019年11月27日"
+output: html_document
+---
+
+```{r}
+st_layers("map.osm")
+```
+
+```{r}
+st_read("map.osm",layer="multipolygons") -> sf_HCHS_multipolygons
+
+st_read("map.osm",layer="lines") -> sf_HCHS_lines
+
+st_read("map.osm",layer="multilinestrings") -> sf_HCHS_multilinestrings
+```
+
+```{r}
+sf_HCHS_multipolygons %>% 
+  ggplot()+geom_sf()+geom_sf(data=sf_HCHS_lines)+geom_sf(data=sf_HCHS_multilinestrings) 
+```
+
+
+
+```{r}
+library(osmdata)
+# open pass query with bounding box
+bbox_taipei <- opq(
+  bbox = c(121.4616,25.1050,121.6058,24.9894) 
+) 
+
+bbox_taipei %>% 
+  add_osm_feature(
+    key="railway", value="subway"
+  ) %>%
+  osmdata_sf() -> map_taipei_subway
+
+map_taipei_subway #只有piont和line有資料
+
+```
+
+```{r}
+map_taipei_subway$osm_points %>%
+  ggplot()+geom_sf()+geom_sf(data=map_taipei_subway$osm_lines)
+
+```
+
+
+```{r}
+bbox_taipei %>%
+  add_osm_feature(
+    key="admin_level", value="5"
+  ) %>%
+  osmdata_sf() -> map_taipei_boundary
+
+map_taipei_boundary  #只取_multipolygons
+
+map_taipei_boundary$osm_multipolygons -> map_taipei
+```
+
+```{r}
+map_taipei %>%
+  ggplot()+
+  geom_sf()
+```
+
+```{r}
+map_taipei %>%
+  osm_geom_rename() %>%
+  ggplot()+
+  geom_sf()
+```
+
+################
+```{r}
+load(url("https://www.dropbox.com/s/r21jg0vxf77geu9/plot_tree.Rda?dl=1"))
+
+plot_tree
+```
+
+
+```{r}
+plot_tree +
+  scale_x_continuous(
+    sec.axis = dup_axis()
+  ) 
+```
+
+
+```{r}
+load(url("https://github.com/tpemartin/course-108-1-inclass-datavisualization/blob/master/%E4%BD%9C%E5%93%81%E5%B1%95%E7%A4%BA/homework6/graphData_homework6_021.Rda?raw=true"))
+source("https://www.dropbox.com/s/0ydtqtxu5guy6i1/theme_lin.R?dl=1")
+
+resume_df %>% 
+  mutate(開始 = ymd(開始), 結束 = ymd(結束))  -> resume_df
+```
+
+
+```{r}
+resume_df %>%
+  ggplot(
+    aes(x = 開始, y = 項目)) +    
+  geom_text(
+    aes(label = 名稱), size = 2.5) + 
+  geom_segment(
+    aes(
+      xend = 結束, yend = 項目, color = 分類, size = 2, alpha = 1
+      )
+    ) +
+  scale_x_date(
+      breaks = seq(as.Date("2015-01-01"), as.Date("2020-01-01"), by="1 year"),
+      labels = scales::date_format("%Y")
+      )+
+  labs(title = "Kuo, Shih-Jung  郭士榮", subtitle = "熱愛挑戰不設限、豐富國際經驗、在學三份實習") + 
+  theme_lin() -> gg_basic
+
+gg_basic
+```
+
+
+```{r}
+gg_basic +
+  facet_grid(分類~.) -> gg_facet
+
+gg_facet
+```
+
+```{r}
+gg_basic +
+  facet_grid(分類~.,  scales = "free_y") -> gg_facet_free
+
+gg_facet_free
+```
+
+```{r}
+load(url("https://github.com/tpemartin/course-108-1-inclass-datavisualization/blob/master/%E4%BD%9C%E5%93%81%E5%B1%95%E7%A4%BA/homework3/graphData_homework3_002.Rda?raw=true"))
+
+graphData$sub_2015_city%>%
+  arrange(desc(area), avg_nh)%>%
+  mutate(city = forcats::fct_inorder(city)) -> df_eldercare
+```
+
+```{r}
+df_eldercare %>%
+  ggplot(
+    aes(y = avg_nh, x = city, fill = area)
+    )+
+  geom_col(
+    width=0.7
+  )+
+  coord_flip()+
+  labs(x = "長照機構數(每10,000位老人)", y="")+
+  theme_lin() -> gg_original
+
+gg_original
+```
+
+```{r}
+gg_original+
+  facet_grid(
+    rows=vars(area), scales="free_y", space="free_y"  ##若不free y的space，所有y的分類會等高，藍色紫色會很胖
+  )
+```
+
+
+
+

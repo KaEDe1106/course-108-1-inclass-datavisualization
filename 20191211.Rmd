@@ -1,0 +1,49 @@
+---
+title: "Untitled"
+author: "KaEDe"
+date: "2019年12月11日"
+output: html_document
+---
+
+```{r}
+source("https://www.dropbox.com/s/mdx4777ugnluspz/webApplications.R?dl=1")
+```
+
+```{r}
+project_html_create(
+  main_file="index.html",
+  type="plain", # or bs : bootstrap
+  dirlib="webProject0",
+  structure=c(
+    "js",
+    "css",
+    "assets")
+)
+
+#html的style tag中，`#搭配的是span id
+#style tag 的內容可以存到css裡面
+```
+
+```{r}
+file.edit("my.css")
+```
+
+```{r}
+dir.create(
+  "./1211"
+)
+download.file("https://raw.githubusercontent.com/tim8537099/course-108-1-inclass-datavisualization/master/example/tet.Rmd",
+              destfile="1211/tet.Rmd"
+)
+download.file("https://github.com/tim8537099/course-108-1-inclass-datavisualization/blob/master/example/plot_us.Rda?raw=true",
+              destfile="1211/plot_us.Rda"
+)
+
+file.edit("1211/tet.Rmd")
+```
+
+```{r}
+c("external/header","external/before_body","external/after_body") %>%
+  lapply(dir.create, recursive=T)
+```
+

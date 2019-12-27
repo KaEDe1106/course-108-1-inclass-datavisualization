@@ -1,0 +1,319 @@
+---
+title: "每週一圖作業資料檔"
+output: html_document
+params:
+  組員: ["彭亦楓"]  
+  學號: ["410773109"]
+---
+
+#### 環境設定
+
+以下為老師執行時一定會存在的環境設定
+```{r basic setup, message=FALSE, echo=TRUE, eval=T}
+rm(list=ls())
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(colorspace); library(grDevices); library(shiny); library(shinyjs); library(scales)
+library(tidyr); library(showtext); library(tidyverse); library(colorspace)
+
+#font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+theme_set(theme_classic())
+knitr::opts_chunk$set(fig.align='center', fig.showtext=T)
+```
+
+#### 資料處理
+  
+```{r data cleaning, echo=TRUE, eval=T}
+#引入資料
+website0 <- read_csv("website.csv")
+poster0 <- read_csv("poster.csv")
+facebook0 <- read_csv("facebook.csv")
+
+website <- website0[ (website0$`event title` %in% c("青銀共賞電影","北大玩具節","聖誕點燈暨北大管樂節")),]
+poster <- poster0[ (poster0$`event title` %in% c("青銀共賞電影","北大玩具節","聖誕點燈暨北大管樂節")),]
+facebook <- facebook0[ (facebook0$`event title` %in% c("青銀共賞電影","北大玩具節","聖誕點燈暨北大管樂節")),]
+
+
+website$from <- "website"
+poster$from <- "poster"
+facebook$from <- "facebook"
+
+
+```
+
+```{r}
+##將所有資料合併，並依時序排序
+allEvent <- rbind(website,poster,facebook)
+allEvent$timestamp %>%
+  ymd_hms(tz="Asia/Taipei") -> allEvent$timestamp
+
+
+allEvent%>%
+  arrange(timestamp) -> allEvent_ArrByTime
+
+allEvent_ArrByTime
+
+```
+
+```{r}
+#1.各管道成效分析
+##讓人了解何者管道成效較為顯著
+##做兩個圓餅圖，其一的統計範圍為至今，其二統計範圍為最近兩週。mouseover一圓餅圖，顯示三者管道的比例關係及確切人氣數值。
+
+#各來源累計人氣
+nrow(allEvent_ArrByTime[allEvent_ArrByTime$from=="website",]) -> websiteWatched
+nrow(allEvent_ArrByTime[allEvent_ArrByTime$from=="poster",]) -> posterWatched
+nrow(allEvent_ArrByTime[allEvent_ArrByTime$from=="facebook",]) -> facebookWatched
+
+showDF <- data.frame(
+  累計人氣來源=c("website","poster","facebook"),
+  點閱次數= c(websiteWatched,posterWatched,facebookWatched)
+)
+showDF
+
+#將`showDF`轉為pie chart
+showDF%>%
+  ggplot(aes(x="",y=點閱次數,fill=累計人氣來源))+
+  geom_bar(width = 1,stat="identity")+
+  coord_polar("y",start = 8)+
+  scale_fill_brewer(palette="Set2")+
+  theme(axis.line = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) -> sourcePieChart
+
+sourcePieChart+
+  theme(legend.title = element_text( size=40, face="bold"),
+        legend.text = element_text( size=40, face="bold"))->sourcePieChart
+
+sourcePieChart
+
+```
+
+
+
+
+
+```{r}
+#2.比較各活動人氣(取最近5個活動，若同期活動超過5個，則保留所有同期活動)。mouseover一點，可看到確切人氣值
+
+#每個活動的第一個關注起，1周內的累計關注折線圖
+#可以看到不同活動，在發布後兩周的關注情形
+
+
+#----------------------------------------
+#原本希望這底下可以用迴圈的，但是發現無法成功，不知問題點
+#後來發現應該用函數較為恰當。
+
+allEvent_ArrByTime%>% 
+  filter(`event title`==unique(allEvent_ArrByTime$`event title`)[1])%>% ##找出第1個活動
+  filter(timestamp <=timestamp[[1]]+weeks(1))%>% ##取前二週的資料
+  mutate(次數=1,
+           `發布後第n天`=day(timestamp)-day(timestamp)[1]+1)%>%  ##每一列皆是人氣一次、新增一變數`發布後第n天`
+  group_by(`發布後第n天`,`event title`)%>% ##計算每日的單日人氣
+  summarise(單日人氣=sum(次數)) ->popularityCompare1
+
+popularityCompare1[c(1:7),]$`event title` <-popularityCompare1$`event title`[1] ##應有7列資料，將此DF填滿7列。變數`event title`底下的直接固定。
+popularityCompare1$發布後第n天[is.na(popularityCompare1$發布後第n天)] <- c(1:7)[!c(1:7)%in% popularityCompare1$發布後第n天]  ##變數`發布後第n天`底下若有NA，則填入原`發布後第n天`底下缺(1至7)的值
+popularityCompare1$單日人氣[is.na(popularityCompare1$單日人氣)] <- 0 ##手動新增的列人氣皆為0
+
+
+allEvent_ArrByTime%>%
+  filter(`event title`==unique(allEvent_ArrByTime$`event title`)[2])%>% ##找出第2個活動
+  filter(timestamp <=timestamp[[1]]+weeks(1))%>% ##取前二週的資料
+  mutate(次數=1,
+           `發布後第n天`=day(timestamp)-day(timestamp)[1]+1)%>%  ##每一列皆是人氣一次、新增一變數`發布後第n天`
+  group_by(`發布後第n天`,`event title`)%>% ##計算每日的單日人氣
+  summarise(單日人氣=sum(次數)) ->popularityCompare2
+
+popularityCompare2[c(1:7),]$`event title` <-popularityCompare2$`event title`[1] #
+popularityCompare2$發布後第n天[is.na(popularityCompare2$發布後第n天)] <- c(1:7)[!c(1:7)%in% popularityCompare2$發布後第n天]
+popularityCompare2$單日人氣[is.na(popularityCompare2$單日人氣)] <- 0
+
+
+
+allEvent_ArrByTime%>% 
+  filter(`event title`==unique(allEvent_ArrByTime$`event title`)[3])%>% ##找出第3個活動
+  filter(timestamp <=timestamp[[1]]+weeks(1))%>% ##取前二週的資料
+  mutate(次數=1,
+           `發布後第n天`=day(timestamp)-day(timestamp)[1]+1)%>%  ##每一列皆是人氣一次、新增一變數`發布後第n天`
+  group_by(`發布後第n天`,`event title`)%>% ##計算每日的單日人氣
+  summarise(單日人氣=sum(次數)) ->popularityCompare3
+
+popularityCompare3[c(1:7),]$`event title` <-popularityCompare3$`event title`[1] #
+popularityCompare3$發布後第n天[is.na(popularityCompare3$發布後第n天)] <- c(1:7)[!c(1:7)%in% popularityCompare3$發布後第n天]
+popularityCompare3$單日人氣[is.na(popularityCompare3$單日人氣)] <- 0
+
+rbind(popularityCompare1,popularityCompare2,popularityCompare3) ->popularityCompareDF
+#得到`popularityCompareDF`
+#----------------------------------------
+
+
+popularityCompareDF%>%
+  ggplot()+geom_line(
+    aes(x=`發布後第n天`,y=單日人氣,color=`event title`),size=1.6
+  ) ->popularityCompareLineChart
+
+popularityCompareLineChart+
+  theme(axis.title.y = element_text(angle = 90,vjust = 0.85),
+        aspect.ratio = 1.3
+        )+
+  scale_x_continuous(breaks = c(1,3,5,7))+
+  scale_color_brewer(palette="Set1")->popularityCompareLineChart
+
+popularityCompareLineChart%>%
+  ggplotly() ->popularityCompareLineChart
+
+popularityCompareLineChart
+```
+
+
+
+```{r}
+#3.單一分頁內的圖形
+
+#顯示自發布日至最新關注日，期間的累計人氣stack折線圖
+
+#先把匯入的資料整理，剩下四個變數，分別為`event title`,`from`,`日期`,`次數`
+allEvent_ArrByTime%>% 
+  mutate(次數=1,
+           日期=ymd(str_c(year(timestamp),"/",month(timestamp),"/",day(timestamp))))%>%
+  group_by(`event title`,from,日期)%>%
+  summarise(次數=sum(次數)) ->timesDF
+
+timesDF
+
+##想建立函數，輸入"(活動名稱)"，即可得到一張圖，符合此chunk的目的
+
+#---------------------
+##以下為函數
+
+InputEventToGetThePtly <- function(event){  #輸入活動名稱
+  
+timesDF%>%
+  filter(`event title`==event) ->timesDF #先得到此活動的DF，再進行處理
+
+min(timesDF$日期)-> publishDate
+max(timesDF$日期)->finalPopularity
+
+#該活動的發布日到最新關注日，是從幾月幾號到幾月幾號?
+publishDate+days(c(0:as.numeric(finalPopularity-publishDate))) -> span
+
+#新增欄位，補上在這span中，無人氣的日期及人次(其值為0)
+#-----
+#for facebook
+timesDF%>%filter(from=="facebook") -> timesDF_faceook
+
+timesDF_faceook[c(1:as.numeric(finalPopularity-publishDate+1)),]$from <- "facebook"  ##應該要有(最新關注-發布日+1)欄資料，其中的`from`皆為"facebook"
+timesDF_faceook[c(1:as.numeric(finalPopularity-publishDate+1)),]$`event title` <-event ##應該要有(最新關注-發布日+1)欄資料，其中的`event title`皆為(函數輸入值)
+
+timesDF_faceook[is.na(timesDF_faceook$日期),]$日期 <- span[!(span%in%timesDF_faceook$日期)]  ##新增欄位後，若`日期`為NA，補上空缺的日期
+
+#若`次數`值有NA，表示該日無人氣，補上0；若沒有NA，則無需新增0(經過測試後發現需利用if，否則在`次數`值無NA時會錯誤)
+if(sum(is.na(timesDF_faceook$次數))>0){
+  timesDF_faceook[is.na(timesDF_faceook$次數),]$次數 <-0
+}
+
+#新增一變數名為`累計次數`
+timesDF_faceook$累計次數 <-0 
+timesDF_faceook%>%
+  arrange(日期)->timesDF_faceook #先按照日期排序
+
+for (i in seq_along(timesDF_faceook$累計次數)){
+  timesDF_faceook$累計次數[i] <- sum(timesDF_faceook[(timesDF_faceook$日期<=timesDF_faceook$日期[i]),]$次數) #第i天的累計次數，即將日期小於第i天的每個次數加總
+}#完成facebook的`累計次數`
+
+#------
+#for poster
+timesDF%>%filter(from=="poster") -> timesDF_poster
+
+timesDF_poster[c(1:as.numeric(finalPopularity-publishDate+1)),]$from <- "poster"  ##應該要有(最新關注-發布日)欄資料，其中的from皆為"poster"
+timesDF_poster[c(1:as.numeric(finalPopularity-publishDate+1)),]$`event title` <-event
+
+timesDF_poster[is.na(timesDF_poster$日期),]$日期 <- span[!(span%in%timesDF_poster$日期)]  ##新增欄位後，若日期為NA，補上空缺的日期
+#若`次數`值有NA，表示該日無人氣，補上0
+if(sum(is.na(timesDF_poster$次數))>0){
+  timesDF_poster[is.na(timesDF_poster$次數),]$次數 <-0 
+}
+
+
+#新增一變數名為`累計次數`
+timesDF_poster$累計次數 <-0 
+timesDF_poster%>%
+  arrange(日期)->timesDF_poster #先按照日期排序
+
+for (i in seq_along(timesDF_poster$累計次數)){
+  timesDF_poster$累計次數[i] <- sum(timesDF_poster[(timesDF_poster$日期<=timesDF_poster$日期[i]),]$次數) #第i天的累計次數，即將日期小於第i天的每個次數加總
+}#完成poster的`累計次數`
+
+#-----
+#for website
+timesDF%>%filter(from=="website") -> timesDF_website
+
+timesDF_website[c(1:as.numeric(finalPopularity-publishDate+1)),]$from <- "website"  ##應該要有(最新關注-發布日)欄資料，其中的from皆為"website"
+timesDF_website[c(1:as.numeric(finalPopularity-publishDate+1)),]$`event title` <-event
+
+timesDF_website[is.na(timesDF_website$日期),]$日期 <- span[!(span%in%timesDF_website$日期)]  ##新增欄位後，若日期為NA，補上空缺的日期
+#若`次數`值有NA，表示該日無人氣，補上0
+if(sum(is.na(timesDF_website$次數))>0){
+  timesDF_website[is.na(timesDF_website$次數),]$次數 <-0 
+}
+
+
+#新增一變數名為`累計次數`
+timesDF_website$累計次數 <-0 
+timesDF_website%>%
+  arrange(日期)->timesDF_website #先按照日期排序
+
+for (i in seq_along(timesDF_website$累計次數)){
+  timesDF_website$累計次數[i] <- sum(timesDF_website[(timesDF_website$日期<=timesDF_website$日期[i]),]$次數) #第i天的累計次數，即將日期小於第i天的每個次數加總
+}#完成website的`累計次數`
+
+
+#將三個管道的DF合併
+rbind(timesDF_faceook,timesDF_poster,timesDF_website)%>%
+  arrange(日期) -> timesDF_new
+
+#直接繪製圖形
+timesDF_new%>%
+  ggplot()+geom_area(
+    aes(x=日期,y=累計次數,fill=from)
+  )+
+  scale_fill_brewer(palette="Set2")+
+  labs(title = str_c("累計人氣圖--",event))->answer
+
+answer%>%
+  ggplotly() ->answer
+return(answer)
+}
+
+#函數結束
+#---------------------
+
+
+
+InputEventToGetThePtly("青銀共賞電影") ->cumulatedMovie
+InputEventToGetThePtly("北大玩具節") ->cumulatedToy
+InputEventToGetThePtly("聖誕點燈暨北大管樂節") ->cumulatedXmas
+cumulatedMovie
+```
+
+
+
+```{r}
+#儲存檔案
+graph <- list()
+graph$sourcePieChart <- sourcePieChart
+graph$popularityCompareLineChart <- popularityCompareLineChart
+graph$cumulatedMovie <- cumulatedMovie
+graph$cumulatedToy <- cumulatedToy
+graph$cumulatedXmas <- cumulatedXmas
+save(graph,file = "graph.Rda")
+```
+
+
+
+
+
+
+
+

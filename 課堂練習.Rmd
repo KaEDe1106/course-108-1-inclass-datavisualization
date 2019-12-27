@@ -19,3 +19,15 @@ showtext_auto(enable=TRUE) #啟用字體
 theme_set(theme_classic())
 knitr::opts_chunk$set(out.width='80%', fig.asp=.75, fig.align='center', fig.showtext=T)
 ```
+
+```{r}
+source("https://www.dropbox.com/s/8ndtvzqbdb4cb93/data_visulaization_pk.R?dl=1")
+```
+
+
+#website函數
+
+```{r}
+source("https://www.dropbox.com/s/mdx4777ugnluspz/webApplications.R?dl=1",encoding = "utf-8")
+```
+

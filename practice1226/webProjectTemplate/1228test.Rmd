@@ -8,6 +8,10 @@ output:
       before_body: ["external/before_body/bf_body.html"]
       after_body: ["external/after_body/af_body.html"]
 ---
+```{r, eval=F, echo=F}
+browseURL("http://localhost:8000/1228test.html")
+```
+
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
@@ -20,18 +24,13 @@ showtext_auto(enable=TRUE) #啟用字體
 knitr::opts_chunk$set(fig.align='center', fig.showtext=T, echo = TRUE)
 ```
 
-<script>
-var map=document.getElementById('graph4').contentDocument
-var uber=map.getElementById('GRID.rastergrob.100.1')
-//GRID.rastergrob.100.1
-var changeArea=document.getElementById('answer')
-
-function change(){
-    changeArea.innerHTML="uber news"
-}
-
-uber.addEventListener("mouseover",change)
-</script>
+```{r, eval=F, echo=F}
+library(servr)
+daemon_stop(
+  daemon_list()
+)
+httd(dir=".",port=8000)
+```
 
 <object id="graph4" data="plot1.svg" type="image/svg+xml" width="100%"></object>
 <div id="answer">12123</div>

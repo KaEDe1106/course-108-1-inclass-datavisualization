@@ -1,1 +1,16 @@
 <!--以HTML語法寫下要放在after body的內容-->
+<script>
+window.onload=function(){
+  var map=document.getElementById('graph4').contentDocument
+  var uber=map.getElementById('GRID.rastergrob.100.1')
+  //GRID.rastergrob.100.1
+  var changeArea=document.getElementById('answer')
+  
+  function change(){
+      changeArea.innerHTML="uber news"
+  }
+  
+  uber.addEventListener("mouseover",change) 
+}
+
+</script>
